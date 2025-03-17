@@ -1,5 +1,9 @@
+import ChildCanvasComponentWrapper from "@/components/ChildCanvasComponentWrapper";
+import ChildPropertiesComponentWrapper from "@/components/ChildPropertiesComponentWrapper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { allBlockLayouts } from "@/constants";
+import { FormBlocks } from "@/lib/form-blocks";
 import { generateUniqueId } from "@/lib/generateUniqueId";
 import { cn } from "@/lib/utils";
 import {
@@ -7,16 +11,25 @@ import {
   removeBlockLayout,
   setBlocks,
   setSelectedBlockLayoutId,
+  updateBlockLayout,
 } from "@/redux/form/formSlice";
 import { RootState } from "@/redux/store";
 import {
   FormBlockInstance,
+  FormBlocksType,
   FormBlockType,
   FormCategory,
   ObjectBlockType,
 } from "@/types/FormCategory";
-import { useDraggable } from "@dnd-kit/core";
-import { Copy, GripHorizontal, Rows2, TrashIcon } from "lucide-react";
+import {
+  Active,
+  DragEndEvent,
+  useDndMonitor,
+  useDraggable,
+  useDroppable,
+} from "@dnd-kit/core";
+import { Copy, GripHorizontal, Rows2, TrashIcon, X } from "lucide-react";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 const blockCategory: FormCategory = "Layout";
@@ -46,8 +59,53 @@ function RowLayoutCanvasComponent({
 }: {
   blockInstance: FormBlockInstance;
 }) {
+  const [activeBlock, setActiveBlock] = useState<Active | null>(null);
   const childBlocks = blockInstance.childBlocks || [];
+
   const dispatch = useDispatch();
+
+  // Droppable for fields
+  const droppable = useDroppable({
+    id: blockInstance.id,
+    disabled: blockInstance.isLocked,
+    data: {
+      isLayoutDropArea: true,
+    },
+  });
+
+  // Monitor for fields
+  useDndMonitor({
+    onDragStart: (event) => {
+      setActiveBlock(event.active);
+    },
+    onDragEnd: (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!active || !active) return;
+      setActiveBlock(null);
+
+      const isBlockBtnElement = active?.data?.current?.isBlockBtnElement;
+      const isLayout = active?.data?.current?.blockType;
+
+      const overBlockId = over?.id;
+
+      if (
+        isBlockBtnElement &&
+        !allBlockLayouts.includes(isLayout) &&
+        overBlockId === blockInstance.id
+      ) {
+        const blockType = active?.data?.current?.blockType;
+        const newBlock = FormBlocks[blockType as FormBlockType].createInstance(
+          generateUniqueId()
+        );
+
+        const updatedChildBlocks = [...childBlocks, newBlock];
+
+        dispatch(
+          updateBlockLayout({ id: blockInstance.id, updatedChildBlocks })
+        );
+      }
+    },
+  });
   const { blockLayouts, selectedBlockLayoutId } = useSelector(
     (state: RootState) => state.form
   );
@@ -79,6 +137,22 @@ function RowLayoutCanvasComponent({
     }
   };
 
+  // Remove child block
+
+  const removeChildBlock = (childBlockId: string) => {
+    console.log("childBlockId", childBlockId);
+    const filteredChildBlock = childBlocks.filter(
+      (block) => block.id !== childBlockId
+    );
+    console.log("filtered blocks", filteredChildBlock);
+    dispatch(
+      updateBlockLayout({
+        id: blockInstance.id,
+        updatedChildBlocks: filteredChildBlock,
+      })
+    );
+  };
+
   const setSelectedLayout = (id: string) => {
     dispatch(setSelectedBlockLayoutId({ id }));
   };
@@ -102,6 +176,7 @@ function RowLayoutCanvasComponent({
       {blockInstance.isLocked && <Border />}
 
       <Card
+        ref={droppable.setNodeRef}
         className={cn(
           `w-full bg-white relative border shadow-sm min-h-[120px] max-w-[768px] rounded-md p-0 `,
           blockInstance.isLocked && "rounded-t-none"
@@ -123,14 +198,45 @@ function RowLayoutCanvasComponent({
               <GripHorizontal size={20} className="text-muted-foreground" />
             </div>
           )}
-          <div className="flex flex-wrap gap-2">
-            {childBlocks?.length == 0 ? (
+          <div className="w-full flex flex-wrap gap-2">
+            {droppable.isOver &&
+              !blockInstance.isLocked &&
+              activeBlock?.data?.current?.isBlockBtnElement &&
+              !allBlockLayouts.includes(
+                activeBlock?.data?.current?.blockType
+              ) && (
+                <div className="relative border border-dotted border-primary bg-primary/10 w-full h-28">
+                  <div className="absolute left-1/2 top-0 -translate-x-1/2 text-xs bg-primary text-white text-center w-28 p-1 rounded-b-full shadow-md">
+                    Drag it here
+                  </div>
+                </div>
+              )}
+            {!droppable.isOver && childBlocks?.length == 0 ? (
               <PlaceHolder />
             ) : (
               <div className="flex flex-col items-center justify-start w-full  gap-4 py-4 px-3">
-                <div className="flex items-center justify-center gap-1">
-                  {/* Child block */}
-                </div>
+                {childBlocks.map((childBlock) => (
+                  <div
+                    className="w-full h-auto flex items-center justify-center gap-1"
+                    key={childBlock.id}
+                  >
+                    {/* Child block */}
+                    <ChildCanvasComponentWrapper blockInstance={childBlock} />
+                    {isSelected && !blockInstance.isLocked && (
+                      <Button
+                        size={"icon"}
+                        variant={"ghost"}
+                        className="bg-transparent"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeChildBlock(childBlock.id);
+                        }}
+                      >
+                        <X />
+                      </Button>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -168,8 +274,30 @@ function RowLayoutFormComponent() {
   return <div>Form comp</div>;
 }
 
-function RowLayoutPropertiesComponent() {
-  return <div>Properties comp</div>;
+function RowLayoutPropertiesComponent({
+  blockInstance,
+}: {
+  blockInstance: FormBlockInstance;
+}) {
+  const childBlocks = blockInstance.childBlocks || [];
+  return (
+    <div className="pt-3 w-full ">
+      <div className="flex w-full flex-col items-center justify-start gap-0 py-0 px-0">
+        {childBlocks.map((childBlock, index) => (
+          <div
+            className="w-full flex items-center justify-center gap-1 h-auto"
+            key={childBlock.id}
+          >
+            <ChildPropertiesComponentWrapper
+              index={index + 1}
+              parentId={blockInstance.id}
+              blockInstance={childBlock}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function Border() {

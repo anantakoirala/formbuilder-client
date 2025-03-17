@@ -110,6 +110,49 @@ export const formSlice = createSlice({
       // Insert the new block at the calculated index
       state.blockLayouts.splice(insertIndex, 0, newBlockLayout);
     },
+    updateBlockLayout: (
+      state,
+      action: PayloadAction<{
+        id: string;
+        updatedChildBlocks: FormBlockInstance[];
+      }>
+    ) => {
+      const { id, updatedChildBlocks } = action.payload;
+
+      // Update the blockLayouts
+      state.blockLayouts = state.blockLayouts.map((block) =>
+        block.id === id ? { ...block, childBlocks: updatedChildBlocks } : block
+      );
+    },
+
+    updateChildBlock: (
+      state,
+      action: PayloadAction<{
+        parentId: string;
+        childBlockId: string;
+        updateChildBlock: FormBlockInstance;
+      }>
+    ) => {
+      const { parentId, childBlockId, updateChildBlock } = action.payload;
+
+      // Find the parent block
+      const parentBlock = state.blockLayouts.find(
+        (block) => block.id === parentId
+      );
+      if (!parentBlock || !parentBlock.childBlocks) return;
+
+      // Find the specific child block and update it directly
+      const childBlockIndex = parentBlock.childBlocks.findIndex(
+        (child) => child.id === childBlockId
+      );
+
+      if (childBlockIndex !== -1) {
+        Object.assign(
+          parentBlock.childBlocks[childBlockIndex],
+          updateChildBlock
+        );
+      }
+    },
   },
 });
 
@@ -121,5 +164,7 @@ export const {
   setSelectedBlockLayoutId,
   setRepositionBlockLayout,
   insertBlockInSpecificPosition,
+  updateBlockLayout,
+  updateChildBlock,
 } = formSlice.actions;
 export default formSlice.reducer;

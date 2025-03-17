@@ -36,7 +36,6 @@ const BuilderCanvas = (props: Props) => {
       setActiveBlock(event.active);
     },
     onDragEnd: (event: DragEndEvent) => {
-      console.log("drag end", event);
       const { active, over } = event;
       if (!over || !active) return;
       setActiveBlock(null);

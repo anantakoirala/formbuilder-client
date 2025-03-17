@@ -15,15 +15,12 @@ const BuilderDragOverLay = (props: Props) => {
   let fallbackNode = <div className="">No block drag</div>;
   useDndMonitor({
     onDragStart: (event) => {
-      console.log("item drag", event);
       setDraggedItem(event.active);
     },
     onDragCancel: () => {
-      console.log("itemDragCancel");
       setDraggedItem(null);
     },
     onDragEnd: () => {
-      console.log("item drag end");
       setDraggedItem(null);
     },
   });

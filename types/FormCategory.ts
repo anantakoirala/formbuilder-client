@@ -1,6 +1,6 @@
 export type FormCategory = "Layout" | "Field";
 
-export type FormBlockType = "RowLayout";
+export type FormBlockType = "RowLayout" | "RadioSelect";
 
 export type ObjectBlockType = {
   blockCategory: FormCategory;
@@ -12,7 +12,11 @@ export type ObjectBlockType = {
   };
   canvasComponent: React.FC<{ blockInstance: FormBlockInstance }>;
   formComponent: React.FC;
-  propertiesComponent: React.FC;
+  propertiesComponent: React.FC<{
+    blockInstance: FormBlockInstance;
+    positionIndex?: number;
+    parentId?: string;
+  }>;
 };
 
 export type FormBlockInstance = {
