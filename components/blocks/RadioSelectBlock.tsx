@@ -15,6 +15,7 @@ import { Input } from "../ui/input";
 import { useDispatch } from "react-redux";
 import { updateChildBlock } from "@/redux/form/formSlice";
 import { Button } from "../ui/button";
+import { Switch } from "../ui/switch";
 
 type Props = {};
 
@@ -181,7 +182,7 @@ function RadioSelectPropertiesComponent({
                 key={index}
               >
                 <Input
-                  className="max-w-[187px]"
+                  className="max-w-[187px] -z-[10]"
                   {...register(`options.${index}`, {
                     onChange: (e) => {
                       const updatedOptions = [...form.getValues("options")];
@@ -197,13 +198,54 @@ function RadioSelectPropertiesComponent({
                   type="button"
                   variant={"ghost"}
                   size={"icon"}
-                  className="p-0 absolute -right-1 -top-1 bg-black rounded-full w-4 h-4"
-                  onClick={() => {}}
+                  className="p-0 absolute -right-1 -top-1 bg-black rounded-full w-4 h-4 -z-[10]"
+                  onClick={() => {
+                    const updatedOptions = form
+                      .getValues("options")
+                      .filter((_, i) => i !== index);
+                    setChanges({
+                      ...form.getValues(),
+                      options: updatedOptions,
+                    });
+                  }}
                 >
                   <X color="white" className="w-2.5 h-2.5" />
                 </Button>
               </div>
             ))}
+            <Button
+              type="button"
+              variant={"outline"}
+              className="mt-2 bg-primary text-white"
+              size={"sm"}
+              onClick={() => {
+                const currentOptions = form.getValues("options") || [];
+                const newOption = `options${currentOptions.length + 1}`;
+                const updatedOptions = [...currentOptions, newOption];
+                setChanges({
+                  ...form.getValues(),
+                  options: updatedOptions,
+                });
+              }}
+            >
+              Add Options
+            </Button>
+          </div>
+        </div>
+        {/* Required Field */}
+        <div className="flex items-baseline justify-between w-full gap-2">
+          <Label className="text-[13px] font-normal">Required</Label>
+          <div className="w-full max-w-[187px] -z-[10] text-end">
+            <Switch
+              checked={form.getValues("required")}
+              onCheckedChange={(value) => {
+                setChanges({
+                  ...form.getValues(),
+                  required: value,
+                });
+              }}
+              className=""
+            />
           </div>
         </div>
       </form>
