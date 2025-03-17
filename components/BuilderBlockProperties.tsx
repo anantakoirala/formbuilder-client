@@ -6,7 +6,7 @@ type Props = {};
 
 const BuilderBlockProperties = (props: Props) => {
   return (
-    <div className="relative w-[320px]">
+    <div className="hidden relative w-[320px]">
       <div className="fixed right w-[320px] bg-white border-l shadow-sm h-screen pb-36 mt-0 overflow-auto">
         <div className="flex flex-col w-full items-center h-auto min-h-full">
           <div className="w-full flex flex-row items-center bg-white pb-2 pt-3  sticky border border-primary top-0 gap-2 px-2">

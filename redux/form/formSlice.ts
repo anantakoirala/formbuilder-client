@@ -1,26 +1,28 @@
 import { Form } from "@/types/Form";
 import { FormBlockInstance } from "@/types/FormCategory";
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 type initialState = {
   form: Form;
   blockLayouts: FormBlockInstance[];
+  selectedBlockLayoutId: string | null;
 };
 
 const initialState: initialState = {
   form: {
-    id: 0, // Default ID, assuming 0 means "not set"
-    userId: 0, // Default user ID
-    name: "", // Empty string for form name
-    description: "", // Optional, default to empty string
-    jsonBlocks: {}, // Assuming it should be an empty object
-    view: 0, // Default views to 0
-    responses: 0, // Default responses to 0
-    published: false, // Default as not published
-    createdAt: new Date(), // Default to current date
-    updatedAt: new Date(), // Default to current date
+    id: 0,
+    userId: 0,
+    name: "",
+    description: "",
+    jsonBlocks: {},
+    view: 0,
+    responses: 0,
+    published: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
   blockLayouts: [],
+  selectedBlockLayoutId: null,
 };
 
 export const formSlice = createSlice({
@@ -28,14 +30,96 @@ export const formSlice = createSlice({
   initialState,
   reducers: {
     setForm: (state, action) => {
-      console.log("action", action);
       state.form = action.payload;
     },
     setBlocks: (state, action) => {
       state.blockLayouts.push(action.payload);
     },
+    removeBlockLayout: (state, action) => {
+      state.blockLayouts = state.blockLayouts.filter(
+        (layout) => layout.id !== action.payload
+      );
+    },
+    duplicateBlockLayout: (
+      state,
+      action: PayloadAction<{
+        insertIndex: number;
+        newBlock: FormBlockInstance;
+      }>
+    ) => {
+      const { insertIndex, newBlock } = action.payload;
+      state.blockLayouts.splice(insertIndex, 0, newBlock);
+    },
+
+    setSelectedBlockLayoutId: (
+      state,
+      action: PayloadAction<{ id: string }>
+    ) => {
+      const { id } = action.payload;
+      state.selectedBlockLayoutId = id;
+    },
+    setRepositionBlockLayout: (
+      state,
+      action: PayloadAction<{
+        activeId: string;
+        overId: string;
+        position: "above" | "below";
+      }>
+    ) => {
+      const { activeId, overId, position } = action.payload;
+
+      // Find indices of active and over blocks
+      const activeIndex = state.blockLayouts.findIndex(
+        (layout) => layout.id === activeId
+      );
+      const overIndex = state.blockLayouts.findIndex(
+        (layout) => layout.id === overId
+      );
+
+      if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex) {
+        return;
+      }
+
+      // Remove the active block from its current position
+      const [movedBlock] = state.blockLayouts.splice(activeIndex, 1);
+      const insertIndex = position === "above" ? overIndex : overIndex + 1;
+
+      // Insert the block at the new position
+      state.blockLayouts.splice(insertIndex, 0, movedBlock);
+    },
+
+    insertBlockInSpecificPosition: (
+      state,
+      action: PayloadAction<{
+        overId: string;
+        newBlockLayout: FormBlockInstance;
+        position: "above" | "below";
+      }>
+    ) => {
+      const { overId, newBlockLayout, position } = action.payload;
+      // Find the index of the block over which we want to insert
+      const overIndex = state.blockLayouts.findIndex(
+        (block) => block.id === overId
+      );
+
+      if (overIndex === -1) {
+        return;
+      }
+      const insertIndex = position === "above" ? overIndex : overIndex + 1;
+
+      // Insert the new block at the calculated index
+      state.blockLayouts.splice(insertIndex, 0, newBlockLayout);
+    },
   },
 });
 
-export const { setForm, setBlocks } = formSlice.actions;
+export const {
+  setForm,
+  setBlocks,
+  removeBlockLayout,
+  duplicateBlockLayout,
+  setSelectedBlockLayoutId,
+  setRepositionBlockLayout,
+  insertBlockInSpecificPosition,
+} = formSlice.actions;
 export default formSlice.reducer;
