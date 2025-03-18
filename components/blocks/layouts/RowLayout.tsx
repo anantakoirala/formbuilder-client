@@ -1,3 +1,4 @@
+import ChildBlockFormComponentWrapper from "@/components/ChildBlockFormComponentWrapper";
 import ChildCanvasComponentWrapper from "@/components/ChildCanvasComponentWrapper";
 import ChildPropertiesComponentWrapper from "@/components/ChildPropertiesComponentWrapper";
 import { Button } from "@/components/ui/button";
@@ -270,8 +271,38 @@ function RowLayoutCanvasComponent({
   );
 }
 
-function RowLayoutFormComponent() {
-  return <div>Form comp</div>;
+function RowLayoutFormComponent({
+  blockInstance,
+}: {
+  blockInstance: FormBlockInstance;
+}) {
+  const childBlocks = blockInstance.childBlocks || [];
+  return (
+    <div className="max-w-full">
+      {blockInstance.isLocked && <Border />}
+      <Card
+        className={cn(
+          `w-full bg-white relative border shadow-sm min-h-[120px] max-w-[768px] rounded-md p-0 `,
+          blockInstance.isLocked && "rounded-t-none"
+        )}
+      >
+        <CardContent className="px-2 pb-2">
+          <div className="flex flex-wrap gap-2">
+            <div className="flex w-full flex-col items-center justify-center gap-4 py-4 px-3">
+              {childBlocks.map((childBlock) => (
+                <div
+                  className="flex items-center justify-center gap-1 h-auto w-full"
+                  key={childBlock.id}
+                >
+                  <ChildBlockFormComponentWrapper blockInstance={childBlock} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
 
 function RowLayoutPropertiesComponent({

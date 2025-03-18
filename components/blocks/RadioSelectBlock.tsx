@@ -1,3 +1,4 @@
+"use client";
 import {
   FormBlockInstance,
   FormBlockType,
@@ -5,7 +6,7 @@ import {
   ObjectBlockType,
 } from "@/types/FormCategory";
 import { ChevronDown, CircleIcon, X } from "lucide-react";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Label } from "../ui/label";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { useForm } from "react-hook-form";
@@ -16,6 +17,7 @@ import { useDispatch } from "react-redux";
 import { updateChildBlock } from "@/redux/form/formSlice";
 import { Button } from "../ui/button";
 import { Switch } from "../ui/switch";
+import { generateUniqueId } from "@/lib/generateUniqueId";
 
 type Props = {};
 
@@ -91,8 +93,67 @@ function RadioSelectCanvasComponent({
   );
 }
 
-function RadioSelectFormComponent() {
-  return <div>Radio select form component</div>;
+function RadioSelectFormComponent({
+  blockInstance,
+}: {
+  blockInstance: FormBlockInstance;
+}) {
+  const block = blockInstance as NewBlockInstance;
+
+  const { label, options, required } = block.attributes;
+  const [isError, setIsError] = useState<boolean>(false);
+  const [value, setValue] = useState<string>("");
+
+  const validateField = (val: string) => {
+    if (required) {
+      return val.trim().length > 0;
+    } else {
+      return true;
+    }
+  };
+  return (
+    <div className="flex flex-col gap-2 w-full">
+      <Label
+        className={`text-base font-normal mb-2 ${
+          isError ? "text-red-500" : ""
+        }`}
+      >
+        {label}
+        {required && <span className="text-red-700">*</span>}
+      </Label>
+      <RadioGroup
+        className="space-y-3 "
+        onValueChange={(value) => {
+          setValue(value);
+          const isValid = validateField(value);
+          setIsError(!isValid);
+        }}
+      >
+        {options.map((option: string, index: number) => {
+          const uniqueId = `option-${generateUniqueId()}`;
+          return (
+            <div className="flex items-center space-x-2" key={index}>
+              <RadioGroupItem
+                value={option}
+                id={uniqueId}
+                className={`cursor-pointer ${isError ? "border-red-500" : ""}`}
+              />
+              <Label htmlFor={uniqueId} className="font-normal cursor-pointer">
+                {option}
+              </Label>
+            </div>
+          );
+        })}
+      </RadioGroup>
+      {isError && (
+        <p className="text-red-500 text-[0.8rem]">
+          {required && value.trim().length === 0
+            ? "This field is required"
+            : ""}
+        </p>
+      )}
+    </div>
+  );
 }
 
 function RadioSelectPropertiesComponent({
@@ -182,7 +243,7 @@ function RadioSelectPropertiesComponent({
                 key={index}
               >
                 <Input
-                  className="max-w-[187px] -z-[10]"
+                  className="max-w-[187px] "
                   {...register(`options.${index}`, {
                     onChange: (e) => {
                       const updatedOptions = [...form.getValues("options")];
@@ -235,10 +296,11 @@ function RadioSelectPropertiesComponent({
         {/* Required Field */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Required</Label>
-          <div className="w-full max-w-[187px] -z-[10] text-end">
+          <div className="w-full max-w-[187px]  text-end">
             <Switch
-              checked={form.getValues("required")}
+              checked={form.watch("required")}
               onCheckedChange={(value) => {
+                form.setValue("required", value); // Updates form state
                 setChanges({
                   ...form.getValues(),
                   required: value,
