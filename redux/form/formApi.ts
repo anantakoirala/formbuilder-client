@@ -1,5 +1,5 @@
 import { api } from "../api";
-import { setForm } from "./formSlice";
+import { setBlocks, setForm } from "./formSlice";
 
 export const formApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -45,13 +45,53 @@ export const formApi = api.injectEndpoints({
       async onQueryStarted(arg, { queryFulfilled, dispatch }) {
         try {
           const result = await queryFulfilled;
-
+          console.log("result", result.data.result.jsonBlocks[0]);
           dispatch(setForm(result.data.result));
+          if (result.data.result.jsonBlocks.length > 0) {
+            dispatch(setBlocks(result.data.result.jsonBlocks[0]));
+          }
         } catch (error: any) {
           console.log("updated errir");
           console.log(error);
         }
       },
+    }),
+    updateForm: builder.mutation({
+      query: ({ data, formId }) => {
+        console.log("data", data);
+        return {
+          url: `/api/forms/${formId}`,
+          method: "PATCH",
+          body: data, // Send the data object directly
+        };
+      },
+      async onQueryStarted(arg, { queryFulfilled, dispatch }) {
+        try {
+          const result = await queryFulfilled;
+          console.log("result update", result.data);
+          dispatch(setForm(result.data));
+          // dispatch(setForm(result.data.result));
+          // if (result.data.result.jsonBlocks.length > 0) {
+          //   dispatch(setBlocks(result.data.result.jsonBlocks[0]));
+          // }
+        } catch (error: any) {
+          console.log("updated errir");
+          console.log(error);
+        }
+      },
+    }),
+    getPublicForm: builder.query({
+      query: ({ id }) => {
+        return {
+          url: `/api/public/${id}`,
+          method: "GET",
+          credentials: "include" as const,
+          headers: {
+            "Content-Type": "application/json", // Ensure headers are set
+          },
+        };
+      },
+      keepUnusedDataFor: 0, // Disables caching
     }),
   }),
 });
@@ -60,4 +100,6 @@ export const {
   useCreateFormMutation,
   useLazyGetAllFormsQuery,
   useLazyGetFormQuery,
+  useUpdateFormMutation,
+  useLazyGetPublicFormQuery,
 } = formApi;

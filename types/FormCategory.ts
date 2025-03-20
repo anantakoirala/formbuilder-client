@@ -4,7 +4,12 @@ export type FormBlockType =
   | "RowLayout"
   | "RadioSelect"
   | "TextField"
-  | "TextArea";
+  | "TextArea"
+  | "StarRating"
+  | "Heading"
+  | "Paragraph"
+  | "Select"
+  | "MultipleChoice";
 
 export type ObjectBlockType = {
   blockCategory: FormCategory;
@@ -20,6 +25,13 @@ export type ObjectBlockType = {
     blockInstance: FormBlockInstance;
     positionIndex?: number;
     parentId?: string;
+  }>;
+  publicFormComponent: React.FC<{
+    blockInstance: FormBlockInstance;
+    register: any;
+    errors: any;
+    trigger: any;
+    control: any;
   }>;
 };
 

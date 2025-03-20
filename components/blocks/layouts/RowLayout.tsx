@@ -1,4 +1,5 @@
 import ChildBlockFormComponentWrapper from "@/components/ChildBlockFormComponentWrapper";
+import ChildBlockPublicFormComponentWrapper from "@/components/ChildBlockPublicFormComponentWrapper";
 import ChildCanvasComponentWrapper from "@/components/ChildCanvasComponentWrapper";
 import ChildPropertiesComponentWrapper from "@/components/ChildPropertiesComponentWrapper";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,7 @@ export const RowLayoutBlock: ObjectBlockType = {
   canvasComponent: RowLayoutCanvasComponent,
   formComponent: RowLayoutFormComponent,
   propertiesComponent: RowLayoutPropertiesComponent,
+  publicFormComponent: RootLayoutPublicFormComponent,
 };
 
 function RowLayoutCanvasComponent({
@@ -113,7 +115,9 @@ function RowLayoutCanvasComponent({
 
   // Remve block from block layouts
   const remove_block_Layout = (id: string) => {
+    console.log("id", id);
     dispatch(removeBlockLayout(id));
+    dispatch(setSelectedBlockLayoutId({ id: null }));
   };
 
   // Duplicate
@@ -341,6 +345,54 @@ function PlaceHolder() {
       <p className="text-center text-primary/80">
         Drag and Drop a field here to get started
       </p>
+    </div>
+  );
+}
+
+function RootLayoutPublicFormComponent({
+  blockInstance,
+  register,
+  errors,
+  trigger,
+  control,
+}: {
+  blockInstance: FormBlockInstance;
+  register: any;
+  errors: any;
+  trigger: any;
+  control: any;
+}) {
+  const childBlocks = blockInstance.childBlocks || [];
+  return (
+    <div className="max-w-full">
+      {blockInstance.isLocked && <Border />}
+      <Card
+        className={cn(
+          `w-full bg-white relative border shadow-sm min-h-[120px] max-w-[768px] rounded-md p-0 `,
+          blockInstance.isLocked && "rounded-t-none"
+        )}
+      >
+        <CardContent className="px-2 pb-2">
+          <div className="flex flex-wrap gap-2">
+            <div className="flex w-full flex-col items-center justify-center gap-4 py-4 px-3">
+              {childBlocks.map((childBlock) => (
+                <div
+                  className="flex items-center justify-center gap-1 h-auto w-full"
+                  key={childBlock.id}
+                >
+                  <ChildBlockPublicFormComponentWrapper
+                    blockInstance={childBlock}
+                    register={register}
+                    errors={errors}
+                    trigger={trigger}
+                    control={control}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

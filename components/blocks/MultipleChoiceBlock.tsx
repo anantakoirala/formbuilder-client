@@ -1,74 +1,74 @@
-"use client";
 import {
   FormBlockInstance,
   FormBlockType,
   FormCategory,
   ObjectBlockType,
 } from "@/types/FormCategory";
-import { ChevronDown, CircleIcon, X } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import { Label } from "../ui/label";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { Controller, useForm } from "react-hook-form";
+import { ChevronDown, SquareCheck, X } from "lucide-react";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Checkbox } from "../ui/checkbox";
 import { useDispatch } from "react-redux";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
 import { updateChildBlock } from "@/redux/form/formSlice";
+import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Switch } from "../ui/switch";
-import { generateUniqueId } from "@/lib/generateUniqueId";
 
-type Props = {};
+const blockCategory: FormCategory = "Field";
+const blockType: FormBlockType = "MultipleChoice";
 
 type AttributeType = {
   label: string;
-  options: string[];
   required: boolean;
+  placeHolder: string;
+  options: string[];
 };
 
 const PropertiesValidationSchema = z.object({
   label: z.string().trim().min(2).max(255),
   required: z.boolean().default(false),
   options: z.array(z.string().min(1)),
+  placeHolder: z.string().trim().optional(),
 });
 
-const blockCategory: FormCategory = "Field";
-const blockType: FormBlockType = "RadioSelect";
-
-export const RadioSelectBlock: ObjectBlockType = {
+export const MultipleChoiceBlock: ObjectBlockType = {
   blockCategory,
   blockType,
   blockBtnElement: {
-    icon: CircleIcon,
-    label: "Radio",
+    icon: SquareCheck,
+    label: "Multiple Choice",
   },
   createInstance: (id: string) => ({
     id,
     blockType,
     attributes: {
-      label: "Select an option",
-      options: ["Option1", "Option2"],
+      label: "Multiple Choice",
+      helperText: "",
       required: false,
+      placeHolder: "Select",
+      options: ["Option1", "Option2"],
     },
   }),
 
-  canvasComponent: RadioSelectCanvasComponent,
-  formComponent: RadioSelectFormComponent,
-  propertiesComponent: RadioSelectPropertiesComponent,
-  publicFormComponent: RadioPublicFormComponent,
+  canvasComponent: MultipleChoiceCanvasComponent,
+  formComponent: MultipleChoiceFormComponent,
+  propertiesComponent: MultipleChoicePropertiesComponent,
+  publicFormComponent: MultipleChoicePublicFormComponent,
 };
 
-type NewBlockInstance = FormBlockInstance & {
+type NewMultipleChoiceBlockInstance = FormBlockInstance & {
   attributes: AttributeType;
 };
 
-function RadioSelectCanvasComponent({
+function MultipleChoiceCanvasComponent({
   blockInstance,
 }: {
   blockInstance: FormBlockInstance;
 }) {
-  const block = blockInstance as NewBlockInstance;
+  const block = blockInstance as NewMultipleChoiceBlockInstance;
 
   const { label, options, required } = block.attributes;
   return (
@@ -77,87 +77,44 @@ function RadioSelectCanvasComponent({
         {label}
         {required && <span className="text-red-700">*</span>}
       </Label>
-      <RadioGroup
-        disabled={true}
-        className="space-y-3 disabled:cursor-default pointer-events-none cursor-default"
-      >
-        {options.map((option: string, index: number) => (
-          <div className="flex items-center space-x-2" key={index}>
-            <RadioGroupItem disabled value={option} id={option} />
-            <Label htmlFor={option} className="font-normal">
-              {option}
-            </Label>
+      <div className="flex flex-col gap-2">
+        {options.map((option) => (
+          <div className="flex items-center space-x-2">
+            <Checkbox className="disabled:cursor-default pointer-events-none cursor-default" />
+            <Label className="font-normal cursor-pointer">{option}</Label>
           </div>
         ))}
-      </RadioGroup>
+      </div>
     </div>
   );
 }
-
-function RadioSelectFormComponent({
+function MultipleChoiceFormComponent({
   blockInstance,
 }: {
   blockInstance: FormBlockInstance;
 }) {
-  const block = blockInstance as NewBlockInstance;
+  const block = blockInstance as NewMultipleChoiceBlockInstance;
 
   const { label, options, required } = block.attributes;
-  const [isError, setIsError] = useState<boolean>(false);
-  const [value, setValue] = useState<string>("");
-
-  const validateField = (val: string) => {
-    if (required) {
-      return val.trim().length > 0;
-    } else {
-      return true;
-    }
-  };
   return (
     <div className="flex flex-col gap-2 w-full">
-      <Label
-        className={`text-base font-normal mb-2 ${
-          isError ? "text-red-500" : ""
-        }`}
-      >
+      <Label className="text-base font-normal mb-2">
         {label}
         {required && <span className="text-red-700">*</span>}
       </Label>
-      <RadioGroup
-        className="space-y-3 "
-        onValueChange={(value) => {
-          setValue(value);
-          const isValid = validateField(value);
-          setIsError(!isValid);
-        }}
-      >
-        {options.map((option: string, index: number) => {
-          const uniqueId = `option-${generateUniqueId()}`;
-          return (
-            <div className="flex items-center space-x-2" key={index}>
-              <RadioGroupItem
-                value={option}
-                id={uniqueId}
-                className={`cursor-pointer ${isError ? "border-red-500" : ""}`}
-              />
-              <Label htmlFor={uniqueId} className="font-normal cursor-pointer">
-                {option}
-              </Label>
-            </div>
-          );
-        })}
-      </RadioGroup>
-      {isError && (
-        <p className="text-red-500 text-[0.8rem]">
-          {required && value.trim().length === 0
-            ? "This field is required"
-            : ""}
-        </p>
-      )}
+      <div className="flex flex-col gap-2">
+        {options.map((option) => (
+          <div className="flex items-center space-x-2">
+            <Checkbox className="" />
+            <Label className="font-normal cursor-pointer">{option}</Label>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
-function RadioSelectPropertiesComponent({
+function MultipleChoicePropertiesComponent({
   positionIndex,
   parentId,
   blockInstance,
@@ -166,9 +123,9 @@ function RadioSelectPropertiesComponent({
   parentId?: string;
   blockInstance: FormBlockInstance;
 }) {
-  const block = blockInstance as NewBlockInstance;
+  const block = blockInstance as NewMultipleChoiceBlockInstance;
   const dispatch = useDispatch();
-  // Form
+
   const form = useForm<z.infer<typeof PropertiesValidationSchema>>({
     resolver: zodResolver(PropertiesValidationSchema),
     defaultValues: {
@@ -206,16 +163,15 @@ function RadioSelectPropertiesComponent({
       })
     );
   };
-
   return (
     <div className="w-full pb-4">
       <div className="w-full flex items-center justify-between gap-1 bg-muted h-auto p-1 px-2 mb-[10px]">
         <span className="text-sm fonts-medium text-gray-600 tracking-wider">
-          Radio {positionIndex}
+          Multiple Choice {positionIndex}
         </span>
         <ChevronDown className="w-4 h-4" />
       </div>
-      <form action="" onSubmit={() => {}} className="w-full space-y-3 px-4">
+      <form className="w-full space-y-3 px-4">
         {/* Label Field */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Label</Label>
@@ -226,11 +182,6 @@ function RadioSelectPropertiesComponent({
                   setChanges({ ...form.getValues(), label: e.target.value });
                 },
               })}
-              //   onKeyDown={(e) => {
-              //     if (e.key === "Enter") {
-              //       console.log("Enter key pressed");
-              //     }
-              //   }}
             />
           </div>
         </div>
@@ -315,8 +266,7 @@ function RadioSelectPropertiesComponent({
     </div>
   );
 }
-
-function RadioPublicFormComponent({
+function MultipleChoicePublicFormComponent({
   blockInstance,
   register,
   errors,
@@ -329,13 +279,13 @@ function RadioPublicFormComponent({
   trigger: any;
   control: any;
 }) {
-  const block = blockInstance as NewBlockInstance;
+  const block = blockInstance as NewMultipleChoiceBlockInstance;
 
   const { label, options, required } = block.attributes;
   const [isError, setIsError] = useState<boolean>(false);
   const [value, setValue] = useState<string>("");
 
-  const fieldName = `${blockInstance.id}-radio`;
+  const fieldName = `${blockInstance.id}-multiplechoice`;
 
   const validateField = (val: string) => {
     if (required) {
@@ -346,87 +296,53 @@ function RadioPublicFormComponent({
   };
   return (
     <div className="flex flex-col gap-2 w-full">
+      {/* Label */}
       <Label
         className={`text-base font-normal mb-2 ${
-          isError || errors[fieldName] ? "text-red-500" : ""
+          errors[fieldName] ? "text-red-500" : ""
         }`}
       >
         {label}
         {required && <span className="text-red-700">*</span>}
       </Label>
+
+      {/* Checkbox Group */}
       <Controller
         name={fieldName}
         control={control}
         rules={{
-          required: required ? "This field is required" : false,
+          validate: (value) =>
+            required
+              ? value?.length > 0 || "At least one option must be selected"
+              : true,
         }}
-        render={({ field }) => (
-          <RadioGroup
-            {...field}
-            className="space-y-3 "
-            onValueChange={(value) => {
-              setValue(value);
-              const isValid = validateField(value);
-              setIsError(!isValid);
-            }}
-          >
-            {options.map((option: string, index: number) => {
-              const uniqueId = `option-${generateUniqueId()}`;
-              return (
-                <div className="flex items-center space-x-2" key={index}>
-                  <RadioGroupItem
-                    value={option}
-                    id={uniqueId}
-                    className={`cursor-pointer ${
-                      isError || errors?.[fieldName] ? "border-red-500" : ""
-                    }`}
-                  />
-                  <Label
-                    htmlFor={uniqueId}
-                    className="font-normal cursor-pointer"
-                  >
-                    {option}
-                  </Label>
-                </div>
-              );
-            })}
-          </RadioGroup>
-        )}
-      />
-      {/* <RadioGroup
-        className="space-y-3 "
-        onValueChange={(value) => {
-          setValue(value);
-          const isValid = validateField(value);
-          setIsError(!isValid);
-        }}
-      >
-        {options.map((option: string, index: number) => {
-          const uniqueId = `option-${generateUniqueId()}`;
+        render={({ field }) => {
           return (
-            <div className="flex items-center space-x-2" key={index}>
-              <RadioGroupItem
-                value={option}
-                id={uniqueId}
-                className={`cursor-pointer ${isError ? "border-red-500" : ""}`}
-              />
-              <Label htmlFor={uniqueId} className="font-normal cursor-pointer">
-                {option}
-              </Label>
+            <div className="flex flex-col gap-2">
+              {options.map((option) => (
+                <div key={option} className="flex items-center space-x-2">
+                  <Checkbox
+                    checked={field.value?.includes(option)}
+                    onCheckedChange={(checked) => {
+                      const newValue = checked
+                        ? [...(field.value || []), option] // Add to array
+                        : field.value?.filter((val: string) => val !== option); // Remove from array
+                      field.onChange(newValue);
+                    }}
+                    className={`${errors[fieldName] ? "border-red-500" : ""} `}
+                  />
+                  <Label>{option}</Label>
+                </div>
+              ))}
             </div>
           );
-        })}
-      </RadioGroup> */}
-      {errors?.[fieldName] && (
+        }}
+      />
+
+      {/* Error Message */}
+      {errors[fieldName] && (
         <p className="text-red-500 text-[0.8rem]">
           {errors[fieldName]?.message}
-        </p>
-      )}
-      {isError && (
-        <p className="text-red-500 text-[0.8rem]">
-          {required && value.trim().length === 0
-            ? "This field is required"
-            : ""}
         </p>
       )}
     </div>

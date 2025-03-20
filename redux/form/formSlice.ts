@@ -53,7 +53,7 @@ export const formSlice = createSlice({
 
     setSelectedBlockLayoutId: (
       state,
-      action: PayloadAction<{ id: string }>
+      action: PayloadAction<{ id: string | null }>
     ) => {
       const { id } = action.payload;
       state.selectedBlockLayoutId = id;

@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import { handleApiError } from "@/lib/handleApiError";
 import { useCreateFormMutation } from "@/redux/form/formApi";
+import { generateUniqueId } from "@/lib/generateUniqueId";
 
 const formSchema = z.object({
   name: z.string().min(3, { message: "Name must be at least two characters" }),
@@ -46,10 +47,46 @@ const CreateFormDialog = ({
   } = form;
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
-      const response = await createForm(data).unwrap();
+      const jsonBlocks = [
+        {
+          id: `layout-` + generateUniqueId(),
+          isLocked: false,
+          blockType: "RowLayout",
+          attributes: {},
+          childBlocks: [
+            {
+              id: generateUniqueId(),
+              blockType: "Heading",
+              attributes: {
+                label: data.name || "untitled",
+                level: 1,
+                fontSize: "4x-large",
+                fontWeight: "normal",
+              },
+            },
+            {
+              id: generateUniqueId(),
+              blockType: "Paragraph",
+              attributes: {
+                label: "Paragraph",
+                text: data.description || "Add a description",
+                fontSize: "small",
+                fontWeight: "normal",
+              },
+            },
+          ],
+        },
+      ];
+      console.log("data", data);
+      const updatedData = {
+        ...data,
+        jsonBlocks,
+      };
+      const response = await createForm(updatedData).unwrap();
       console.log("response", response);
 
       toast.success(response?.message || "Form created successfully!");
+      setCreateFormDialogOpen(false);
     } catch (error) {
       handleApiError(error);
     }

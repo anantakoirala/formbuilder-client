@@ -5,159 +5,140 @@ import {
   FormCategory,
   ObjectBlockType,
 } from "@/types/FormCategory";
-import { ChevronDown, CircleIcon, X } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import { Label } from "../ui/label";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { Controller, useForm } from "react-hook-form";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ChevronDown, X } from "lucide-react";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import { useDispatch } from "react-redux";
+import { Input } from "../ui/input";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
 import { updateChildBlock } from "@/redux/form/formSlice";
 import { Button } from "../ui/button";
 import { Switch } from "../ui/switch";
-import { generateUniqueId } from "@/lib/generateUniqueId";
 
-type Props = {};
+const blockCategory: FormCategory = "Field";
+const blockType: FormBlockType = "Select";
 
 type AttributeType = {
   label: string;
-  options: string[];
   required: boolean;
+  placeHolder: string;
+  options: string[];
 };
 
 const PropertiesValidationSchema = z.object({
   label: z.string().trim().min(2).max(255),
   required: z.boolean().default(false),
   options: z.array(z.string().min(1)),
+  placeHolder: z.string().trim().optional(),
 });
 
-const blockCategory: FormCategory = "Field";
-const blockType: FormBlockType = "RadioSelect";
-
-export const RadioSelectBlock: ObjectBlockType = {
+export const SelectFieldBlock: ObjectBlockType = {
   blockCategory,
   blockType,
   blockBtnElement: {
-    icon: CircleIcon,
-    label: "Radio",
+    icon: ChevronDown,
+    label: "Select Field",
   },
   createInstance: (id: string) => ({
     id,
     blockType,
     attributes: {
-      label: "Select an option",
-      options: ["Option1", "Option2"],
+      label: "Select Field",
+      helperText: "",
       required: false,
+      placeHolder: "Select",
+      options: ["Option1", "Option2"],
     },
   }),
 
-  canvasComponent: RadioSelectCanvasComponent,
-  formComponent: RadioSelectFormComponent,
-  propertiesComponent: RadioSelectPropertiesComponent,
-  publicFormComponent: RadioPublicFormComponent,
+  canvasComponent: SelectFieldCanvasComponent,
+  formComponent: SelectFieldFormComponent,
+  propertiesComponent: SelectFieldPropertiesComponent,
+  publicFormComponent: SelectPublicFormComponent,
 };
 
-type NewBlockInstance = FormBlockInstance & {
+type NewSelectBlockInstance = FormBlockInstance & {
   attributes: AttributeType;
 };
 
-function RadioSelectCanvasComponent({
+function SelectFieldCanvasComponent({
   blockInstance,
 }: {
   blockInstance: FormBlockInstance;
 }) {
-  const block = blockInstance as NewBlockInstance;
-
-  const { label, options, required } = block.attributes;
+  const block = blockInstance as NewSelectBlockInstance;
+  const { helperText, label, placeHolder, required, options } =
+    block.attributes;
   return (
     <div className="flex flex-col gap-2 w-full">
       <Label className="text-base font-normal mb-2">
         {label}
-        {required && <span className="text-red-700">*</span>}
+        {required && <span className="text-red-500">*</span>}
       </Label>
-      <RadioGroup
-        disabled={true}
-        className="space-y-3 disabled:cursor-default pointer-events-none cursor-default"
-      >
-        {options.map((option: string, index: number) => (
-          <div className="flex items-center space-x-2" key={index}>
-            <RadioGroupItem disabled value={option} id={option} />
-            <Label htmlFor={option} className="font-normal">
-              {option}
-            </Label>
-          </div>
-        ))}
-      </RadioGroup>
+      <Select>
+        <SelectTrigger className="w-full disabled:cursor-default pointer-events-none cursor-default">
+          <SelectValue placeholder={placeHolder} />
+        </SelectTrigger>
+        <SelectContent className="w-full">
+          {options.map((option: string, index: number) =>
+            option.trim().length > 0 ? ( // Check if the string is not empty
+              <div className="flex items-center space-x-2" key={index}>
+                <SelectItem value={option}>{option}</SelectItem>
+              </div>
+            ) : null
+          )}
+        </SelectContent>
+      </Select>
+      {helperText && (
+        <p className="text-muted-foreground text-[0.8rem] ">{helperText}</p>
+      )}
     </div>
   );
 }
-
-function RadioSelectFormComponent({
+function SelectFieldFormComponent({
   blockInstance,
 }: {
   blockInstance: FormBlockInstance;
 }) {
-  const block = blockInstance as NewBlockInstance;
-
-  const { label, options, required } = block.attributes;
-  const [isError, setIsError] = useState<boolean>(false);
-  const [value, setValue] = useState<string>("");
-
-  const validateField = (val: string) => {
-    if (required) {
-      return val.trim().length > 0;
-    } else {
-      return true;
-    }
-  };
+  const block = blockInstance as NewSelectBlockInstance;
+  const { helperText, label, placeHolder, required, options } =
+    block.attributes;
   return (
     <div className="flex flex-col gap-2 w-full">
-      <Label
-        className={`text-base font-normal mb-2 ${
-          isError ? "text-red-500" : ""
-        }`}
-      >
+      <Label className="text-base font-normal mb-2">
         {label}
-        {required && <span className="text-red-700">*</span>}
+        {required && <span className="text-red-500">*</span>}
       </Label>
-      <RadioGroup
-        className="space-y-3 "
-        onValueChange={(value) => {
-          setValue(value);
-          const isValid = validateField(value);
-          setIsError(!isValid);
-        }}
-      >
-        {options.map((option: string, index: number) => {
-          const uniqueId = `option-${generateUniqueId()}`;
-          return (
+      <Select>
+        <SelectTrigger className="w-full ">
+          <SelectValue placeholder={placeHolder} />
+        </SelectTrigger>
+        <SelectContent className="w-full">
+          {options.map((option: string, index: number) => (
             <div className="flex items-center space-x-2" key={index}>
-              <RadioGroupItem
-                value={option}
-                id={uniqueId}
-                className={`cursor-pointer ${isError ? "border-red-500" : ""}`}
-              />
-              <Label htmlFor={uniqueId} className="font-normal cursor-pointer">
-                {option}
-              </Label>
+              <SelectItem value={option}>{option}</SelectItem>
             </div>
-          );
-        })}
-      </RadioGroup>
-      {isError && (
-        <p className="text-red-500 text-[0.8rem]">
-          {required && value.trim().length === 0
-            ? "This field is required"
-            : ""}
-        </p>
+          ))}
+        </SelectContent>
+      </Select>
+      {helperText && (
+        <p className="text-muted-foreground text-[0.8rem] ">{helperText}</p>
       )}
     </div>
   );
 }
 
-function RadioSelectPropertiesComponent({
+function SelectFieldPropertiesComponent({
   positionIndex,
   parentId,
   blockInstance,
@@ -166,8 +147,9 @@ function RadioSelectPropertiesComponent({
   parentId?: string;
   blockInstance: FormBlockInstance;
 }) {
-  const block = blockInstance as NewBlockInstance;
+  const block = blockInstance as NewSelectBlockInstance;
   const dispatch = useDispatch();
+
   // Form
   const form = useForm<z.infer<typeof PropertiesValidationSchema>>({
     resolver: zodResolver(PropertiesValidationSchema),
@@ -175,6 +157,7 @@ function RadioSelectPropertiesComponent({
       label: block.attributes.label,
       required: block.attributes.required,
       options: block.attributes.options,
+      placeHolder: block.attributes.placeHolder,
     },
     mode: "onBlur",
   });
@@ -187,6 +170,7 @@ function RadioSelectPropertiesComponent({
       label: block.attributes.label,
       required: block.attributes.required,
       options: block.attributes.options,
+      placeHolder: block.attributes.placeHolder,
     });
   }, [block.attributes]);
 
@@ -206,16 +190,15 @@ function RadioSelectPropertiesComponent({
       })
     );
   };
-
   return (
     <div className="w-full pb-4">
       <div className="w-full flex items-center justify-between gap-1 bg-muted h-auto p-1 px-2 mb-[10px]">
         <span className="text-sm fonts-medium text-gray-600 tracking-wider">
-          Radio {positionIndex}
+          Select {positionIndex}
         </span>
         <ChevronDown className="w-4 h-4" />
       </div>
-      <form action="" onSubmit={() => {}} className="w-full space-y-3 px-4">
+      <form className="w-full space-y-3 px-4">
         {/* Label Field */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Label</Label>
@@ -226,11 +209,22 @@ function RadioSelectPropertiesComponent({
                   setChanges({ ...form.getValues(), label: e.target.value });
                 },
               })}
-              //   onKeyDown={(e) => {
-              //     if (e.key === "Enter") {
-              //       console.log("Enter key pressed");
-              //     }
-              //   }}
+            />
+          </div>
+        </div>
+        {/* Place holder */}
+        <div className="flex items-baseline justify-between w-full gap-2">
+          <Label className="text-[13px] font-normal">Place Holder</Label>
+          <div className="w-full max-w-[187px]">
+            <Input
+              {...register("placeHolder", {
+                onChange: (e) => {
+                  setChanges({
+                    ...form.getValues(),
+                    placeHolder: e.target.value,
+                  });
+                },
+              })}
             />
           </div>
         </div>
@@ -316,7 +310,7 @@ function RadioSelectPropertiesComponent({
   );
 }
 
-function RadioPublicFormComponent({
+function SelectPublicFormComponent({
   blockInstance,
   register,
   errors,
@@ -329,30 +323,23 @@ function RadioPublicFormComponent({
   trigger: any;
   control: any;
 }) {
-  const block = blockInstance as NewBlockInstance;
+  const block = blockInstance as NewSelectBlockInstance;
 
-  const { label, options, required } = block.attributes;
+  const { helperText, label, placeHolder, required, options } =
+    block.attributes;
   const [isError, setIsError] = useState<boolean>(false);
   const [value, setValue] = useState<string>("");
 
-  const fieldName = `${blockInstance.id}-radio`;
-
-  const validateField = (val: string) => {
-    if (required) {
-      return val.trim().length > 0;
-    } else {
-      return true;
-    }
-  };
+  const fieldName = `${blockInstance.id}-select`;
   return (
     <div className="flex flex-col gap-2 w-full">
       <Label
         className={`text-base font-normal mb-2 ${
-          isError || errors[fieldName] ? "text-red-500" : ""
+          errors[fieldName] ? "text-red-500" : ""
         }`}
       >
         {label}
-        {required && <span className="text-red-700">*</span>}
+        {required && <span className="text-red-500">*</span>}
       </Label>
       <Controller
         name={fieldName}
@@ -361,72 +348,28 @@ function RadioPublicFormComponent({
           required: required ? "This field is required" : false,
         }}
         render={({ field }) => (
-          <RadioGroup
-            {...field}
-            className="space-y-3 "
-            onValueChange={(value) => {
-              setValue(value);
-              const isValid = validateField(value);
-              setIsError(!isValid);
-            }}
-          >
-            {options.map((option: string, index: number) => {
-              const uniqueId = `option-${generateUniqueId()}`;
-              return (
+          <Select {...field} onValueChange={field.onChange} value={field.value}>
+            <SelectTrigger
+              className={`w-full border ${
+                errors[fieldName] ? "border-red-500" : "border-gray-300"
+              }`}
+            >
+              <SelectValue placeholder={placeHolder} />
+            </SelectTrigger>
+            <SelectContent className="w-full">
+              {options.map((option: string, index: number) => (
                 <div className="flex items-center space-x-2" key={index}>
-                  <RadioGroupItem
-                    value={option}
-                    id={uniqueId}
-                    className={`cursor-pointer ${
-                      isError || errors?.[fieldName] ? "border-red-500" : ""
-                    }`}
-                  />
-                  <Label
-                    htmlFor={uniqueId}
-                    className="font-normal cursor-pointer"
-                  >
-                    {option}
-                  </Label>
+                  <SelectItem value={option}>{option}</SelectItem>
                 </div>
-              );
-            })}
-          </RadioGroup>
+              ))}
+            </SelectContent>
+          </Select>
         )}
       />
-      {/* <RadioGroup
-        className="space-y-3 "
-        onValueChange={(value) => {
-          setValue(value);
-          const isValid = validateField(value);
-          setIsError(!isValid);
-        }}
-      >
-        {options.map((option: string, index: number) => {
-          const uniqueId = `option-${generateUniqueId()}`;
-          return (
-            <div className="flex items-center space-x-2" key={index}>
-              <RadioGroupItem
-                value={option}
-                id={uniqueId}
-                className={`cursor-pointer ${isError ? "border-red-500" : ""}`}
-              />
-              <Label htmlFor={uniqueId} className="font-normal cursor-pointer">
-                {option}
-              </Label>
-            </div>
-          );
-        })}
-      </RadioGroup> */}
+
       {errors?.[fieldName] && (
         <p className="text-red-500 text-[0.8rem]">
           {errors[fieldName]?.message}
-        </p>
-      )}
-      {isError && (
-        <p className="text-red-500 text-[0.8rem]">
-          {required && value.trim().length === 0
-            ? "This field is required"
-            : ""}
         </p>
       )}
     </div>

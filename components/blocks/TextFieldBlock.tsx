@@ -9,7 +9,7 @@ import React, { useEffect, useState } from "react";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Switch } from "../ui/switch";
 import { useDispatch } from "react-redux";
@@ -55,6 +55,7 @@ export const TextFieldBlock: ObjectBlockType = {
   canvasComponent: TextFieldCanvasComponent,
   formComponent: TextFieldFormComponent,
   propertiesComponent: TextFieldPropertiesComponent,
+  publicFormComponent: TextPublicFormComponent,
 };
 
 type NewTextBlockInstance = FormBlockInstance & {
@@ -260,6 +261,93 @@ function TextFieldPropertiesComponent({
           </div>
         </div>
       </form>
+    </div>
+  );
+}
+
+function TextPublicFormComponent({
+  blockInstance,
+  register,
+  errors,
+  trigger,
+  control,
+}: {
+  blockInstance: FormBlockInstance;
+  register: any;
+  errors: any;
+  trigger: any;
+  control: any;
+}) {
+  const block = blockInstance as NewTextBlockInstance;
+  const { label, helperText, required, placeHolder } = block.attributes;
+  const [isError, setIsError] = useState<boolean>(false);
+
+  const fieldName = `${blockInstance.id}-text`;
+
+  const validateField = (val: string) => {
+    if (required) {
+      return val.trim().length > 0;
+    } else {
+      return true;
+    }
+  };
+  return (
+    <div className="flex flex-col gap-2 w-full">
+      <Label
+        className={`text-base !font-normal mb-2 ${
+          errors?.[fieldName] || isError ? "text-red-500" : ""
+        }`}
+      >
+        {label}
+        {required && <span className="text-red-500">*</span>}
+      </Label>
+      <Controller
+        name={fieldName}
+        control={control}
+        defaultValue="" // ✅ Set an initial value to prevent uncontrolled warning
+        rules={{
+          required: required ? "This field is required" : false,
+        }}
+        render={({ field }) => (
+          <Input
+            {...field}
+            placeholder={placeHolder}
+            className={`h-10 ${
+              errors[fieldName] || isError ? "border-red-500" : ""
+            }`}
+            onBlur={(event) => {
+              const inputValue = event.target.value;
+              const isValid = validateField(inputValue);
+              setIsError(!isValid);
+              if (inputValue.length > 0) {
+                field.onBlur(); // Trigger the onBlur method from the Controller
+              }
+            }}
+            onChange={(event) => {
+              field.onChange(event.target.value); // data send back to hook form
+              if (event.target.value.length > 0) {
+                setIsError(false);
+              } else {
+                setIsError(true);
+              }
+              //setValue(event.target.value) // UI state
+            }}
+          />
+        )}
+      />
+      {helperText && (
+        <p className="text-muted-foreground text-[0.8rem]">{helperText}</p>
+      )}
+      {errors?.[fieldName] && (
+        <p className="text-red-500 text-[0.8rem]">
+          {errors[fieldName]?.message}
+        </p>
+      )}
+      {isError && !errors[fieldName] ? (
+        <p className="text-red-500 text-[0.8rem]">
+          {required ? `This field is required.` : ""}
+        </p>
+      ) : null}
     </div>
   );
 }

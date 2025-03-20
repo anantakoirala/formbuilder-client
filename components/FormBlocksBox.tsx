@@ -57,7 +57,7 @@ const FormBlocksBox = (props: Props) => {
           <h5 className="text-[13px] text-card-foreground font-medium">
             Fields
           </h5>
-          <div className="pt-1 grid grid-cols-3 gap-3">
+          <div className="pt-1 grid grid-cols-3 gap-2">
             {fieldBlocks.map((block) => (
               <BlockBtnElements
                 key={block.blockType}
