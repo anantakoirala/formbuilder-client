@@ -15,15 +15,17 @@ const baseQueryWithReauth: typeof baseQuery = async (
 
   if (result.error && result.error.status === 401) {
     const message = (result.error.data as { message?: string })?.message;
-
-    if (message === "Token expired") {
+    console.log("redux api message", message);
+    if (message === "Unauthorized") {
       try {
+        console.log("ya aayo");
         // Try refreshing the token
         const refreshResult = await baseQuery(
-          { url: "/api/v1/auth/refresh-token", method: "POST" },
+          { url: "/api/auth/refresh-token", method: "POST" },
           api,
           extraOptions
         );
+        console.log("refresh result", refreshResult);
 
         if (refreshResult.data) {
           const { token } = refreshResult.data as { token: string };
@@ -42,6 +44,9 @@ const baseQueryWithReauth: typeof baseQuery = async (
       }
     } else if (message === "Token not provided") {
       // Redirect to login if token is missing
+      console.log("login if token missing");
+      window.location.href = "/login";
+    } else {
       console.log("login if token missing");
       window.location.href = "/login";
     }

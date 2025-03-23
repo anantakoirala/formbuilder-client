@@ -37,7 +37,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           error?.response?.status === 401 &&
           error.response.data?.message !== "Unauthorized - Invalid token"
         ) {
-          router.push("/login");
+          //router.push("/login");
         } else {
           console.error("Error fetching user data:", error);
           // Handle other errors

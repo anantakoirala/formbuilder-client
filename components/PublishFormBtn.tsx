@@ -44,8 +44,8 @@ const PublishFormBtn = (props: Props) => {
       className={cn(
         `${
           form.published
-            ? "bg-red-500 hover:bg-red-600"
-            : "bg-primary text-white"
+            ? "bg-red-500 hover:bg-red-600 flex items-center gap-1 md:gap-2 px-1 md:px-3"
+            : "bg-primary text-white flex items-center gap-1 md:gap-2 px-1 md:px-3"
         }`
       )}
       size={"sm"}

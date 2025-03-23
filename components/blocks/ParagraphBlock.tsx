@@ -138,7 +138,7 @@ function ParagraphPropertiesComponent({
         {/* Label */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Label</Label>
-          <div className="w-full max-w-[187px]">
+          <div className="w-full max-w-[150px] md:max-w-[187px]">
             <Textarea
               {...register("text", {
                 onChange: (e) => {
@@ -153,7 +153,7 @@ function ParagraphPropertiesComponent({
         {/* Font Size */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Font Size</Label>
-          <div className="w-full max-w-[187px]">
+          <div className="w-full max-w-[150px] md:max-w-[187px]">
             <Select
               defaultValue={block.attributes.fontSize}
               onValueChange={(value: fontSizeType) => {
@@ -177,7 +177,7 @@ function ParagraphPropertiesComponent({
         {/* Weight */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Weight</Label>
-          <div className="w-full max-w-[187px]">
+          <div className="w-full max-w-[150px] md:max-w-[187px]">
             <Select
               defaultValue={block.attributes.fontWeight}
               onValueChange={(value: fontWeightType) => {

@@ -58,10 +58,8 @@ const Page = (props: Props) => {
             </div>
             <div className="grid gap-4 grid-cols-2 md:grid-cols-5 lg:grid-cols-3 xl:grid-cols-5 ">
               {forms.length > 0 &&
-                forms.map((form) => (
-                  <React.Fragment key={form.id}>
-                    <FormItem form={form} />
-                  </React.Fragment>
+                forms.map((form, index) => (
+                  <FormItem form={form} key={index} />
                 ))}
             </div>
             {/* <div className="flex items-center justify-center">

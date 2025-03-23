@@ -207,7 +207,7 @@ function TextAreaPropertiesComponent({
         {/* Label */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Label</Label>
-          <div className="w-full max-w-[187px]">
+          <div className="w-full max-w-[150px] md:max-w-[187px]">
             <Input
               {...register("label", {
                 onChange: (e) => {
@@ -220,7 +220,7 @@ function TextAreaPropertiesComponent({
         {/* Place holder */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Place Holder</Label>
-          <div className="w-full max-w-[187px]">
+          <div className="w-full max-w-[150px] md:max-w-[187px]">
             <Input
               {...register("placeHolder", {
                 onChange: (e) => {
@@ -236,7 +236,7 @@ function TextAreaPropertiesComponent({
         {/* Helper text */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Helper Text</Label>
-          <div className="w-full max-w-[187px]">
+          <div className="w-full max-w-[150px] md:max-w-[187px]">
             <Input
               {...register("helperText", {
                 onChange: (e) => {
@@ -252,7 +252,7 @@ function TextAreaPropertiesComponent({
         {/* Rows */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Rows</Label>
-          <div className="w-full max-w-[187px]">
+          <div className="w-full max-w-[150px] md:max-w-[187px]">
             <Input
               type="number"
               {...register("rows", {
@@ -313,7 +313,7 @@ function TextAreaPublicFormComponent({
     }
     return true; // If not required, always valid.
   };
-  const fieldName = `${blockInstance.id}-textarea`;
+  const fieldName = `${blockInstance.id}`;
   return (
     <div className="flex flex-col gap-2 w-full">
       <Label

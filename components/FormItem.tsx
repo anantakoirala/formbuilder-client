@@ -30,7 +30,7 @@ const FormItem = ({ form }: Props) => {
             {form.name}
           </h5>
           {[0, 1, 2].map((number, index) => (
-            <div className="flex items-center gap-1 mb-2">
+            <div className="flex items-center gap-1 mb-2" key={index}>
               <Skeleton className="h-3 w-3 rounded-full shrink-0" />
               <Skeleton className="h-3 w-[75px]" />
             </div>

@@ -335,7 +335,7 @@ function RadioPublicFormComponent({
   const [isError, setIsError] = useState<boolean>(false);
   const [value, setValue] = useState<string>("");
 
-  const fieldName = `${blockInstance.id}-radio`;
+  const fieldName = `${blockInstance.id}`;
 
   const validateField = (val: string) => {
     if (required) {

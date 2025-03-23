@@ -23,7 +23,7 @@ const BuilderSidebar = (props: Props) => {
   const { form } = useSelector((state: RootState) => state.form);
   const [tabs, setTabs] = useState<"blocks" | "settings">("blocks");
   return (
-    <Sidebar className="border-r left-12 pt-16 h-full">
+    <Sidebar className="border-r  pt-16 h-full">
       <SidebarHeader className="px-0 bg-background">
         <header className="border-b border-primary w-full pt-1 pb-2 flex shrink-0 items-center gap-2">
           <div className="flex items-center gap-2 px-4">

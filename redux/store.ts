@@ -2,11 +2,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { api } from "./api";
 import { formSlice } from "./form/formSlice";
+import { propertiesSlice } from "./properties/PropertiesSlice";
 
 export const store = configureStore({
   reducer: {
     [api.reducerPath]: api.reducer,
     [formSlice.name]: formSlice.reducer,
+    [propertiesSlice.name]: propertiesSlice.reducer,
   },
   devTools: process.env.NODE_ENV !== "production",
   middleware: (getDefaultMiddleware) =>

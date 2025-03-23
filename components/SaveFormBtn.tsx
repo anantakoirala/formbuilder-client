@@ -36,8 +36,7 @@ const SaveFormBtn = (props: Props) => {
       variant={"outline"}
       className={cn(
         `
-        !text-primary
-        !bg-primary/10 !border-primary
+        shrink-0 text-primary bg-primary/10 border-primary flex items-center gap-1 md:gap-2 px-1 md:px-3
             `,
         form?.published && "cursor-default pointer-events-none"
       )}
@@ -45,7 +44,7 @@ const SaveFormBtn = (props: Props) => {
       disabled={isLoading}
     >
       <Save />
-      Save
+      <span className=" text-xs">Save</span>
     </Button>
   );
 };

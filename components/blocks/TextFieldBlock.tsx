@@ -193,7 +193,7 @@ function TextFieldPropertiesComponent({
     <div className="w-full pb-4 ">
       <div className="w-full flex flex-row items-center justify-between gap-1 bg-gray-100 h-auto p-1 px-2 mb-[10px]">
         <span className="text-sm font-medium text-gray-600 tracking-wider">
-          Textarea {positionIndex}
+          Text {positionIndex}
         </span>
         <ChevronDown className="w-4 h-4" />
       </div>
@@ -201,7 +201,7 @@ function TextFieldPropertiesComponent({
         {/* Label */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Label</Label>
-          <div className="w-full max-w-[187px]">
+          <div className="w-full max-w-[150px] md:max-w-[187px]">
             <Input
               {...register("label", {
                 onChange: (e) => {
@@ -214,7 +214,7 @@ function TextFieldPropertiesComponent({
         {/* Place holder */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Place Holder</Label>
-          <div className="w-full max-w-[187px]">
+          <div className="w-full max-w-[150px] md:max-w-[187px]">
             <Input
               {...register("placeHolder", {
                 onChange: (e) => {
@@ -230,7 +230,7 @@ function TextFieldPropertiesComponent({
         {/* Helper text */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Helper Text</Label>
-          <div className="w-full max-w-[187px]">
+          <div className="w-full max-w-[150px] md:max-w-[187px]">
             <Input
               {...register("helperText", {
                 onChange: (e) => {
@@ -282,7 +282,7 @@ function TextPublicFormComponent({
   const { label, helperText, required, placeHolder } = block.attributes;
   const [isError, setIsError] = useState<boolean>(false);
 
-  const fieldName = `${blockInstance.id}-text`;
+  const fieldName = `${blockInstance.id}`;
 
   const validateField = (val: string) => {
     if (required) {

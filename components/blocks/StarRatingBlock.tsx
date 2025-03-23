@@ -237,7 +237,7 @@ function StarRatingPropertiesComponent({
         {/* Label */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Label</Label>
-          <div className="w-full max-w-[187px]">
+          <div className="w-full max-w-[150px] md:max-w-[187px]">
             <Input
               {...register("label", {
                 onChange: (e) => {
@@ -250,7 +250,7 @@ function StarRatingPropertiesComponent({
         {/* Required Field */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Required</Label>
-          <div className="w-full max-w-[187px]  text-end">
+          <div className="w-full max-w-[150px] md:max-w-[187px]  text-end">
             <Switch
               checked={form.watch("required")}
               onCheckedChange={(value) => {
@@ -285,7 +285,7 @@ function StarRatingPublicFormComponent({
   const block = blockInstance as any;
   const { label, required, maxStars, helperText } = block.attributes;
 
-  const fieldName = `${blockInstance.id}-starrating`;
+  const fieldName = `${blockInstance.id}`;
 
   return (
     <div className="flex flex-col gap-2 w-full mb-1">

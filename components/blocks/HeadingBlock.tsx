@@ -177,7 +177,7 @@ function HeadingPropertiesComponent({
         {/* Label */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Label</Label>
-          <div className="w-full max-w-[187px]">
+          <div className="w-full max-w-[150px] md:max-w-[187px]">
             <Input
               {...register("label", {
                 onChange: (e) => {
@@ -190,7 +190,7 @@ function HeadingPropertiesComponent({
         {/* Font Size */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Font Size</Label>
-          <div className="w-full max-w-[187px]">
+          <div className="w-full max-w-[150px] md:max-w-[187px]">
             <Select
               defaultValue={block.attributes.fontSize}
               onValueChange={(value: fontSizeType) => {
@@ -217,7 +217,7 @@ function HeadingPropertiesComponent({
         {/* Weight */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Weight</Label>
-          <div className="w-full max-w-[187px]">
+          <div className="w-full max-w-[150px] md:max-w-[187px]">
             <Select
               defaultValue={block.attributes.fontWeight}
               onValueChange={(value: fontWeightType) => {
@@ -242,7 +242,7 @@ function HeadingPropertiesComponent({
         {/* Heading Level */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Level</Label>
-          <div className="w-full max-w-[187px]">
+          <div className="w-full max-w-[150px] md:max-w-[187px]">
             <Select
               defaultValue={String(block.attributes.level)}
               onValueChange={(value: fontWeightType) => {

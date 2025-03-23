@@ -25,10 +25,11 @@ const PreviewDialog = (props: Props) => {
           <Button
             size={"sm"}
             variant={"outline"}
-            className="shrink-0 text-primary bg-primary/10 border-primary"
+            className="shrink-0 text-primary bg-primary/10 border-primary flex items-center gap-1 md:gap-2 px-1 md:px-3"
           >
-            <Eye />
-            Preview
+            <Eye className="w-4 h-4 md:w-5 md:h-5" />
+
+            <span className="text-xs md:text-sm ">Preview</span>
           </Button>
         </DialogTrigger>
         <DialogContent className="flex flex-col flex-grow max-h-svh h-full gap-0 w-screen max-w-full">

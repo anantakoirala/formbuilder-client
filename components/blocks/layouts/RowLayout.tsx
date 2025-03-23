@@ -15,6 +15,7 @@ import {
   setSelectedBlockLayoutId,
   updateBlockLayout,
 } from "@/redux/form/formSlice";
+import { openSheet } from "@/redux/properties/PropertiesSlice";
 import { RootState } from "@/redux/store";
 import {
   FormBlockInstance,
@@ -160,6 +161,7 @@ function RowLayoutCanvasComponent({
 
   const setSelectedLayout = (id: string) => {
     dispatch(setSelectedBlockLayoutId({ id }));
+    dispatch(openSheet());
   };
 
   const isSelected = selectedBlockLayoutId === blockInstance.id;

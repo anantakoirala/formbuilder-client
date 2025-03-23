@@ -93,6 +93,32 @@ export const formApi = api.injectEndpoints({
       },
       keepUnusedDataFor: 0, // Disables caching
     }),
+    submitForm: builder.mutation({
+      query: ({ data, formId }) => {
+        console.log("data api", data);
+        return {
+          url: `/api/public/submit-form`,
+          method: "POST",
+          body: { data, formId },
+          credentials: "include" as const,
+          headers: {
+            "Content-Type": "application/json", // Ensure headers are set
+          },
+        };
+      },
+    }),
+    getFormResponses: builder.query({
+      query: ({ id }) => {
+        return {
+          url: `/api/response/${id}`,
+          method: "GET",
+          credentials: "include" as const,
+          headers: {
+            "Content-Type": "application/json", // Ensure headers are set
+          },
+        };
+      },
+    }),
   }),
 });
 
@@ -102,4 +128,6 @@ export const {
   useLazyGetFormQuery,
   useUpdateFormMutation,
   useLazyGetPublicFormQuery,
+  useSubmitFormMutation,
+  useLazyGetFormResponsesQuery,
 } = formApi;

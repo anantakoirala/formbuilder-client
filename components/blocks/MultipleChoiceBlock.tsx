@@ -175,7 +175,7 @@ function MultipleChoicePropertiesComponent({
         {/* Label Field */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Label</Label>
-          <div className="w-full max-w-[187px]">
+          <div className="w-full max-w-[150px] md:max-w-[187px]">
             <Input
               {...register("label", {
                 onChange: (e) => {
@@ -195,7 +195,7 @@ function MultipleChoicePropertiesComponent({
                 key={index}
               >
                 <Input
-                  className="max-w-[187px] "
+                  className="max-w-[150px] md:max-w-[187px] "
                   {...register(`options.${index}`, {
                     onChange: (e) => {
                       const updatedOptions = [...form.getValues("options")];
@@ -248,7 +248,7 @@ function MultipleChoicePropertiesComponent({
         {/* Required Field */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Required</Label>
-          <div className="w-full max-w-[187px]  text-end">
+          <div className="w-full max-w-[150px] md:max-w-[187px]  text-end">
             <Switch
               checked={form.watch("required")}
               onCheckedChange={(value) => {
@@ -285,7 +285,7 @@ function MultipleChoicePublicFormComponent({
   const [isError, setIsError] = useState<boolean>(false);
   const [value, setValue] = useState<string>("");
 
-  const fieldName = `${blockInstance.id}-multiplechoice`;
+  const fieldName = `${blockInstance.id}`;
 
   const validateField = (val: string) => {
     if (required) {

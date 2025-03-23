@@ -1,6 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { FormBlocks } from "@/lib/form-blocks";
+import { useSubmitFormMutation } from "@/redux/form/formApi";
 import { FormBlockInstance } from "@/types/FormCategory";
 import React, { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -12,6 +13,8 @@ type Props = {
 };
 
 const FormSubmitComponent = ({ formId, blocks }: Props) => {
+  const [saveFormResponse, { isError, isLoading, isSuccess }] =
+    useSubmitFormMutation();
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const formVals = useRef<{ [key: string]: string }>({});
 
@@ -54,7 +57,16 @@ const FormSubmitComponent = ({ formId, blocks }: Props) => {
   //   }
   // };
   const handleSubmitForm = async (data: any) => {
-    console.log("formVals", data);
+    try {
+      console.log("formsubmit", data);
+      const response = await saveFormResponse({
+        data,
+        formId: formId,
+      }).unwrap();
+      console.log("response", response);
+    } catch (error) {
+      console.log("error", error);
+    }
   };
   return (
     <div className="w-full h-full overflow-y-auto pt-3 transition-all duration-300">
