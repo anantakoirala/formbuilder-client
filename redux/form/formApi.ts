@@ -117,6 +117,19 @@ export const formApi = api.injectEndpoints({
         };
       },
     }),
+    deleteForm: builder.mutation({
+      query: ({ id }) => {
+        return {
+          url: `/api/forms/${id}`,
+          method: "DELETE",
+          credentials: "include" as const,
+          headers: {
+            "Content-Type": "application/json", // Ensure headers are set
+          },
+        };
+      },
+      invalidatesTags: ["forms"],
+    }),
   }),
 });
 
@@ -128,4 +141,5 @@ export const {
   useLazyGetPublicFormQuery,
   useSubmitFormMutation,
   useLazyGetFormResponsesQuery,
+  useDeleteFormMutation,
 } = formApi;

@@ -1,8 +1,8 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
-import React from "react";
+import { useParams, usePathname, useRouter } from "next/navigation";
+import React, { useContext } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,12 +14,23 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { ChevronDown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { AuthContext } from "@/contextProviders/AuthProvider";
+import { restApi } from "@/api";
 
 type Props = {};
 
 const Header = (props: Props) => {
+  let authContext = useContext(AuthContext);
+  if (!authContext) {
+    console.warn("AuthContext is not available.");
+    return null; // or render a fallback UI
+  }
+
+  const { name, email } = authContext;
+
   const pathName = usePathname();
   const { formId } = useParams();
+  const router = useRouter();
 
   const menus = [
     {
@@ -46,6 +57,13 @@ const Header = (props: Props) => {
     pathName === "/dashboard"
       ? menus.filter((menu) => menu.pathname === "/dashboard")
       : menus;
+
+  const logOut = async () => {
+    try {
+      const response = await restApi.get("/api/auth/logout");
+      router.push("/login");
+    } catch (error) {}
+  };
   return (
     <header className="sticky top-0 z-50 h-16 items-center gap-4 bg-primary px-4 md:px-6">
       <nav className="gap-1 md:gap-6 w-full h-full text-sm md:text-lg font-medium flex justify-between md:flex md:flex-row">
@@ -92,18 +110,17 @@ const Header = (props: Props) => {
               <DropdownMenuLabel>
                 <div className="flex flex-col">
                   <span className="truncate font-semibold text-black text-[15px] md:text-sm">
-                    Ananta Koirala
+                    {name}
                   </span>
                   <span className="truncate block w-full max-w-[100px] md:max-w-[150px] text-[10px] md:text-xs text-muted-foreground">
-                    ananta@gmail.com
+                    {email}
                   </span>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Billing</DropdownMenuItem>
-              <DropdownMenuItem>Team</DropdownMenuItem>
-              <DropdownMenuItem>Subscription</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => logOut()}>
+                LogOut
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

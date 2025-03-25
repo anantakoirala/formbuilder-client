@@ -26,10 +26,10 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(true);
       try {
         const response = await restApi.get("/api/auth/me");
-
+        console.log("response", response);
         const userData: AuthContextValue = {
-          email: response.data.email,
-          name: response.data.name,
+          email: response.data.user.email,
+          name: response.data.user.name,
         };
         setAuthenticatedUser(userData);
       } catch (error: any) {

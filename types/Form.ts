@@ -4,9 +4,10 @@ export interface Form {
   name: string;
   description?: string;
   jsonBlocks?: any;
-  view: number;
+  views: number;
   responses: number;
   published: boolean;
   createdAt: Date;
   updatedAt: Date;
+  responseCount: number;
 }

@@ -10,14 +10,28 @@ import {
   Globe,
   LockKeyholeIcon,
   MessageSquareIcon,
+  Trash2,
 } from "lucide-react";
+
+import toast from "react-hot-toast";
+import { useDeleteFormMutation } from "@/redux/form/formApi";
 
 type Props = {
   form: Form;
 };
 
 const FormItem = ({ form }: Props) => {
+  const [trigger] = useDeleteFormMutation();
   const router = useRouter();
+
+  const deleteForm = async (formId: number) => {
+    try {
+      await trigger({ id: formId }).unwrap();
+      toast.success("Form deleted successfully");
+    } catch (error) {
+      toast.error("Something went wrong");
+    }
+  };
   return (
     <div
       className="w-full h-auto "
@@ -47,16 +61,33 @@ const FormItem = ({ form }: Props) => {
             )}
             {form.name}
           </span>
-          <EllipsisIcon className="text-gray-900 size-4" />
+          <Trash2
+            className="text-gray-900 size-4"
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+
+              // Show confirmation dialog before proceeding with the delete action
+              const isConfirmed = window.confirm(
+                "Are you sure you want to delete this form?"
+              );
+
+              if (isConfirmed) {
+                deleteForm(form.id);
+              } else {
+                console.log("Form deletion canceled.");
+              }
+            }}
+          />
         </div>
         <div className="flex w-full border-t border-gray-300 items-center justify-between py-1">
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground items-center flex gap-1 font-[14px]">
-              {form.responses}
+              {form.responseCount}
               <MessageSquareIcon className="text-muted-foreground s-ze-[14px]" />
             </span>
             <span className="text-muted-foreground items-center flex gap-1 font-[14px]">
-              {form.view}
+              {form.views}
               <ActivityIcon className="text-muted-foreground s-ze-[14px]" />
             </span>
           </div>
