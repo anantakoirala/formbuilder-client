@@ -47,24 +47,26 @@ const FormBuilder = (props: Props) => {
           }
         >
           <Builder isSideBarOpen={isSideBarOpen} />
-          <Sheet
-            open={isSheetOpen}
-            onOpenChange={(open) => {
-              if (open) {
-                dispatch(openSheet());
-              } else {
-                dispatch(closeSheet());
-              }
-            }}
-          >
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle></SheetTitle>
-                <SheetDescription></SheetDescription>
-              </SheetHeader>
-              <SmallBlockPropertyBox />
-            </SheetContent>
-          </Sheet>
+          {isSheetOpen && (
+            <Sheet
+              open={isSheetOpen}
+              onOpenChange={(open) => {
+                if (open) {
+                  dispatch(openSheet());
+                } else {
+                  dispatch(closeSheet());
+                }
+              }}
+            >
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle></SheetTitle>
+                  <SheetDescription></SheetDescription>
+                </SheetHeader>
+                <SmallBlockPropertyBox />
+              </SheetContent>
+            </Sheet>
+          )}
         </SidebarProvider>
       </DndContext>
     </div>

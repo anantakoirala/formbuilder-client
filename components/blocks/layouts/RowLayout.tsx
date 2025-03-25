@@ -5,6 +5,7 @@ import ChildPropertiesComponentWrapper from "@/components/ChildPropertiesCompone
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { allBlockLayouts } from "@/constants";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { FormBlocks } from "@/lib/form-blocks";
 import { generateUniqueId } from "@/lib/generateUniqueId";
 import { cn } from "@/lib/utils";
@@ -65,6 +66,8 @@ function RowLayoutCanvasComponent({
 }) {
   const [activeBlock, setActiveBlock] = useState<Active | null>(null);
   const childBlocks = blockInstance.childBlocks || [];
+
+  const isMobile = useIsMobile();
 
   const dispatch = useDispatch();
 
@@ -161,7 +164,9 @@ function RowLayoutCanvasComponent({
 
   const setSelectedLayout = (id: string) => {
     dispatch(setSelectedBlockLayoutId({ id }));
-    dispatch(openSheet());
+    if (isMobile) {
+      dispatch(openSheet());
+    }
   };
 
   const isSelected = selectedBlockLayoutId === blockInstance.id;

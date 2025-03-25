@@ -15,6 +15,7 @@ import toast from "react-hot-toast";
 import { handleApiError } from "@/lib/handleApiError";
 import { useCreateFormMutation } from "@/redux/form/formApi";
 import { generateUniqueId } from "@/lib/generateUniqueId";
+import { defaultBackgroundColor, defaultPrimaryColor } from "@/constants";
 
 const formSchema = z.object({
   name: z.string().min(3, { message: "Name must be at least two characters" }),
@@ -81,6 +82,8 @@ const CreateFormDialog = ({
       const updatedData = {
         ...data,
         jsonBlocks,
+        primaryColor: defaultPrimaryColor,
+        defaultBackgroundColor: defaultBackgroundColor,
       };
       const response = await createForm(updatedData).unwrap();
       console.log("response", response);

@@ -59,10 +59,28 @@ const FormSubmitComponent = ({ formId, blocks }: Props) => {
   const handleSubmitForm = async (data: any) => {
     try {
       console.log("formsubmit", data);
-      const response = await saveFormResponse({
-        data,
-        formId: formId,
-      }).unwrap();
+
+      const formData = new FormData();
+
+      Object.keys(data).forEach((key) => {
+        if (data[key] instanceof FileList) {
+          console.log(`Appending files for key: ${key}`, data[key]); // Debugging
+          Array.from(data[key]).forEach((file) => {
+            formData.append(key, file);
+          });
+        } else if (data[key] !== undefined && data[key] !== null) {
+          // Ensure non-file values exist before appending
+          console.log("key", key);
+          formData.append(key, data[key].toString());
+        }
+      });
+
+      formData.append("formId", formId);
+
+      // console.log("Final FormData before sending:", formData);
+
+      // formData.append("formId", formId);
+      const response = await saveFormResponse(formData).unwrap();
       console.log("response", response);
     } catch (error) {
       console.log("error", error);
@@ -74,7 +92,11 @@ const FormSubmitComponent = ({ formId, blocks }: Props) => {
         <div className="w-full relative bg-transparent px-2 flex flex-col items-center justify-start pt-1 pb-14 ">
           <div className="w-full mb-3 bg-white bg-[url(/form-bg.jpg)] bg-center bg-cover bg-no-repeat border shadow-sm h-[135px] max-w-[768px] rounded-md px-1"></div>
           <div className="w-full h-auto">
-            <form onSubmit={handleSubmit(handleSubmitForm)}>
+            <form
+              onSubmit={handleSubmit(handleSubmitForm)}
+              encType="multipart/form-data"
+            >
+              {/* <input type="file" {...register("file")} /> */}
               <div className="flex flex-col w-full gap-4">
                 {blocks.map((block) => {
                   const FormBlockComponent =

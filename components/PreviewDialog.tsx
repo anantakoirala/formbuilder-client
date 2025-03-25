@@ -47,16 +47,16 @@ const PreviewDialog = (props: Props) => {
                 <div className="w-full mb-3 bg-white bg-[url(/form-bg.jpg)] bg-center bg-cover bg-no-repeat border shadow-sm h-[135px] max-w-[768px] rounded-md px-1"></div>
                 {blockLayouts.length > 0 && (
                   <div className="flex flex-col w-full gap-4 ">
-                    {blockLayouts.map((block) => {
+                    {blockLayouts.map((block, index) => {
                       const FormBlockComponents =
                         FormBlocks[block.blockType].formComponent;
                       return (
-                        <>
+                        <React.Fragment key={index}>
                           <FormBlockComponents
                             blockInstance={block}
                             key={block.id}
                           />
-                        </>
+                        </React.Fragment>
                       );
                     })}
                   </div>

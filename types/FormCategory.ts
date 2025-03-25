@@ -9,7 +9,8 @@ export type FormBlockType =
   | "Heading"
   | "Paragraph"
   | "Select"
-  | "MultipleChoice";
+  | "MultipleChoice"
+  | "Fileupload";
 
 export type ObjectBlockType = {
   blockCategory: FormCategory;

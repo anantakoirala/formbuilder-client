@@ -1,4 +1,5 @@
 import { SelectFieldBlock } from "@/components/blocks/DropDownBLock";
+import { FileUploadBlock } from "@/components/blocks/FileUpload";
 import { HeadingBlock } from "@/components/blocks/HeadingBlock";
 import { RowLayoutBlock } from "@/components/blocks/layouts/RowLayout";
 import { MultipleChoiceBlock } from "@/components/blocks/MultipleChoiceBlock";
@@ -19,4 +20,5 @@ export const FormBlocks: FormBlocksType = {
   Paragraph: ParagraphBlock,
   Select: SelectFieldBlock,
   MultipleChoice: MultipleChoiceBlock,
+  Fileupload: FileUploadBlock,
 };

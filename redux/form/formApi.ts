@@ -94,16 +94,14 @@ export const formApi = api.injectEndpoints({
       keepUnusedDataFor: 0, // Disables caching
     }),
     submitForm: builder.mutation({
-      query: ({ data, formId }) => {
-        console.log("data api", data);
+      query: (formData) => {
+        console.log("FormData being sent:", formData);
         return {
           url: `/api/public/submit-form`,
           method: "POST",
-          body: { data, formId },
+          body: formData, // Send FormData directly
           credentials: "include" as const,
-          headers: {
-            "Content-Type": "application/json", // Ensure headers are set
-          },
+          // REMOVE "Content-Type": "application/json" - Browser will set it
         };
       },
     }),
