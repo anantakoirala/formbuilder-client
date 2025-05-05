@@ -51,7 +51,6 @@ const BuilderCanvas = (props: Props) => {
 
       // Child element is dragged and dropped over or below child element
       if (isRowLayoutChildItem && over?.data?.current?.isRowLayoutChildItem) {
-        console.log("yes yse");
         const isDroppingOverChildBlockLayoutAbove =
           over?.data?.current?.isAbove;
         const isDroppingOverChildBlockLayoutBelow =

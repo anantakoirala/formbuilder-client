@@ -4,21 +4,22 @@ export const BASE_URL = process.env.NEXT_PUBLIC_API;
 
 const restApi = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true, // Ensure cookies (refresh token) are sent
+  withCredentials: true, // Send cookies with every request
 });
 
 let isRefreshing = false;
-let refreshSubscribers: Array<(token: string) => void> = [];
+let refreshSubscribers: Array<() => void> = [];
 
-const onRefreshed = (token: string) => {
-  refreshSubscribers.forEach((callback) => callback(token));
+const onRefreshed = () => {
+  refreshSubscribers.forEach((callback) => callback());
   refreshSubscribers = [];
 };
 
-const addRefreshSubscriber = (callback: (token: string) => void) => {
+const addRefreshSubscriber = (callback: () => void) => {
   refreshSubscribers.push(callback);
 };
 
+// Request interceptor
 restApi.interceptors.request.use(
   (config) => {
     config.headers["Content-Type"] = "application/json";
@@ -27,6 +28,7 @@ restApi.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Response interceptor
 restApi.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -34,45 +36,40 @@ restApi.interceptors.response.use(
 
     if (error.response && error.response.status === 401) {
       const message = error.response.data?.message;
-      console.log("Axios Interceptor 401:", message);
 
+      // No refresh token scenario
       if (message === "Token not provided") {
-        window.location.href = "/login"; // Redirect user to login
+        // Redirect to login if no refresh token
+        window.location.href = "/login";
         return Promise.reject(error);
       }
 
+      // Expired access token scenario
       if (message === "Unauthorized") {
         if (!isRefreshing) {
           isRefreshing = true;
           try {
-            const refreshResponse = await axios.post(
+            await axios.post(
               `${BASE_URL}/api/auth/refresh-token`,
               {},
-              { withCredentials: true }
+              { withCredentials: true } // Refresh token cookie will be sent
             );
 
-            const newAccessToken = refreshResponse.data.accessToken;
-            console.log("New Access Token:", newAccessToken);
-
-            onRefreshed(newAccessToken);
+            onRefreshed();
             isRefreshing = false;
 
-            // Retry the failed request with new token
-            originalRequest.headers[
-              "Authorization"
-            ] = `Bearer ${newAccessToken}`;
             return restApi(originalRequest);
           } catch (refreshError) {
             console.error("Refresh token failed:", refreshError);
             isRefreshing = false;
-            window.location.href = "/login"; // Redirect if refresh fails
+            window.location.href = "/login";
             return Promise.reject(refreshError);
           }
         }
 
+        // Queue failed requests until refresh completes
         return new Promise((resolve) => {
-          addRefreshSubscriber((newToken) => {
-            originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
+          addRefreshSubscriber(() => {
             resolve(restApi(originalRequest));
           });
         });

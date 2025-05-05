@@ -10,7 +10,7 @@ type Props = {
 
 const Layout = ({ children }: Props) => {
   const pathName = usePathname();
-  console.log("pathname", pathName);
+
   return (
     <div className="h-screen w-full flex justify-between overflow-y-hidden">
       <div className="lg:pt-7 pt-3 lg:px-12 px-6 lg:w-2/3 w-full lg:min-w-[800px]">

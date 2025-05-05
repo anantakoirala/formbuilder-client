@@ -33,6 +33,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         };
         setAuthenticatedUser(userData);
       } catch (error: any) {
+        console.log("error auth provider", error);
         if (
           error?.response?.status === 401 &&
           error.response.data?.message !== "Unauthorized - Invalid token"

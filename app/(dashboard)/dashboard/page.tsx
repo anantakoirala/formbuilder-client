@@ -5,9 +5,11 @@ import StatsCards from "@/components/StatsCards";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useLazyGetAllFormsQuery } from "@/redux/form/formApi";
+import { resetFormState } from "@/redux/form/formSlice";
 import { Form } from "@/types/Form";
 import { PlusIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 
 type Props = {};
 
@@ -16,13 +18,19 @@ const Page = (props: Props) => {
     useState<boolean>(false);
   const [forms, setForms] = useState<Form[]>([]);
   const [trigger, { isError, isLoading, data }] = useLazyGetAllFormsQuery();
+
+  const dispatch = useDispatch();
   useEffect(() => {
     trigger({});
   }, [trigger]);
 
+  // clear previous form data
+  useEffect(() => {
+    dispatch(resetFormState());
+  }, []);
+
   useEffect(() => {
     if (data) {
-      console.log("data", data);
       setForms(data.forms);
     }
   }, [data]);

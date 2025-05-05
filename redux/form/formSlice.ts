@@ -33,6 +33,7 @@ export const formSlice = createSlice({
   initialState,
   reducers: {
     setForm: (state, action) => {
+      console.log("action.payload", action.payload);
       state.form = action.payload;
     },
     setBlocks: (state, action) => {
@@ -292,6 +293,7 @@ export const formSlice = createSlice({
         appendableRowLayout.childBlocks.push(childTobeMoved); // <- this was missing
       }
     },
+    resetFormState: () => initialState,
   },
 });
 
@@ -309,5 +311,6 @@ export const {
   setChildBlockDisabled,
   insertNewBlockAccordingToChildPosition,
   insertChildElementToNewRowLayout,
+  resetFormState,
 } = formSlice.actions;
 export default formSlice.reducer;

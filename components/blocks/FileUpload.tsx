@@ -21,6 +21,11 @@ const PropertiesValidationSchema = z.object({
   label: z.string().trim().min(2).max(255),
   required: z.boolean().default(false),
   helperText: z.string().trim().max(255).optional(),
+  fileSize: z.number().min(1).max(2).default(1),
+  fileTypes: z
+    .array(z.string())
+    .min(1, { message: "At least one file type must be selected" }),
+  // e.g., ['image/png', 'application/pdf']
 });
 
 const blockCategory: FormCategory = "Field";
@@ -41,6 +46,8 @@ export const FileUploadBlock: ObjectBlockType = {
       label: "Upload File",
       helperText: "",
       required: false,
+      fileSize: 1,
+      fileTypes: ["image/png"],
     },
   }),
   canvasComponent: FileUploadCanvasComponent,
@@ -71,6 +78,8 @@ type NewFileBlockInstance = FormBlockInstance & {
     label: string;
     helperText: string;
     required: boolean;
+    fileSize: number;
+    fileTypes: string[];
   };
 };
 
@@ -80,7 +89,7 @@ function FileUploadCanvasComponent({
   blockInstance: FormBlockInstance;
 }) {
   const block = blockInstance as NewFileBlockInstance;
-  const { label, helperText, required } = block.attributes;
+  const { label, helperText, required, fileSize } = block.attributes;
   const { childBlockDisabled, form } = useSelector(
     (state: RootState) => state.form
   );
@@ -142,7 +151,7 @@ function FileUploadCanvasComponent({
         </div>
 
         <Label className="text-base font-normal mb-2">
-          {label}
+          {label} <span className="text-xs ">{`(max:${fileSize}MB)`}</span>
           {required && <span className="text-red-500">*</span>}
         </Label>
 
@@ -232,116 +241,168 @@ function FileUploadPropertiesComponent({
       label: block.attributes.label,
       helperText: block.attributes.helperText,
       required: block.attributes.required,
+      fileSize: block.attributes.fileSize ?? 1,
+      fileTypes: block.attributes.fileTypes ?? ["image/png"],
     },
   });
 
-  const { reset, register } = form;
+  const {
+    reset,
+    register,
+    watch,
+    setValue,
+    formState: { errors },
+  } = form;
+
+  const fileTypes = watch("fileTypes") || [];
 
   useEffect(() => {
     reset(block.attributes);
   }, [block.attributes]);
 
-  const setChanges = (data: z.infer<typeof PropertiesValidationSchema>) => {
+  const setChanges = (
+    rawData: Partial<z.infer<typeof PropertiesValidationSchema>>
+  ) => {
     if (!parentId) return;
+
+    const result = PropertiesValidationSchema.safeParse({
+      ...form.getValues(),
+      ...rawData,
+    });
+
+    if (!result.success) {
+      // Manually set all field errors
+      result.error.errors.forEach((err) => {
+        const fieldName = err.path[0] as keyof z.infer<
+          typeof PropertiesValidationSchema
+        >;
+        form.setError(fieldName, {
+          type: "manual",
+          message: err.message,
+        });
+      });
+      return;
+    }
+
     dispatch(
       updateChildBlock({
         parentId,
         childBlockId: block.id,
         updateChildBlock: {
           ...block,
-          attributes: { ...block.attributes, ...data },
+          attributes: { ...block.attributes, ...rawData },
         },
       })
     );
   };
 
   return (
-    <div className="w-full pb-4 ">
+    <div className="w-full pb-4">
       <div className="w-full flex flex-row items-center justify-between gap-1 bg-gray-100 h-auto p-1 px-2 mb-[10px]">
         <span className="text-sm font-medium text-gray-600 tracking-wider">
           FileUpload {positionIndex}
         </span>
         <ChevronDown className="w-4 h-4" />
       </div>
-      <form action="" className="w-full space-y-3 px-4">
+
+      <form className="w-full space-y-3 px-4">
         {/* Label */}
-        <div className="flex items-baseline justify-between w-full gap-2">
+        <div className="flex flex-col gap-1">
           <Label className="text-[13px] font-normal">Label</Label>
-          <div className="w-full max-w-[150px] md:max-w-[187px]">
-            <Input
-              {...register("label", {
-                onChange: (e) => {
-                  setChanges({ ...form.getValues(), label: e.target.value });
-                },
-              })}
-            />
-          </div>
+          <Input
+            {...register("label", {
+              onChange: (e) => setChanges({ label: e.target.value }),
+            })}
+          />
+          {errors.label && (
+            <span className="text-xs text-red-500">{errors.label.message}</span>
+          )}
         </div>
 
-        {/* Helper text */}
-        <div className="flex items-baseline justify-between w-full gap-2">
+        {/* Helper Text */}
+        <div className="flex flex-col gap-1">
           <Label className="text-[13px] font-normal">Helper Text</Label>
-          <div className="w-full max-w-[150px] md:max-w-[187px]">
-            <Input
-              {...register("helperText", {
-                onChange: (e) => {
-                  setChanges({
-                    ...form.getValues(),
-                    helperText: e.target.value,
-                  });
-                },
-              })}
-            />
-          </div>
+          <Input
+            {...register("helperText", {
+              onChange: (e) => setChanges({ helperText: e.target.value }),
+            })}
+          />
+          {errors.helperText && (
+            <span className="text-xs text-red-500">
+              {errors.helperText.message}
+            </span>
+          )}
         </div>
-        {/* Required Field */}
+
+        {/* File Size */}
+        <div className="flex flex-col gap-1">
+          <Label className="text-[13px] font-normal">File Size (MB)</Label>
+          <Input
+            type="number"
+            {...register("fileSize", {
+              valueAsNumber: true,
+              onChange: (e) => setChanges({ fileSize: Number(e.target.value) }),
+            })}
+          />
+          {errors.fileSize && (
+            <span className="text-xs text-red-500">
+              {errors.fileSize.message}
+            </span>
+          )}
+        </div>
+        {/* File Types */}
+        <div className="flex flex-col gap-1">
+          <Label className="text-[13px] font-normal">
+            File Types (MIME Types)
+          </Label>
+          <div className="flex flex-wrap gap-2">
+            {["image/png", "image/jpeg", "application/pdf"].map((type) => (
+              <div key={type} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id={type}
+                  value={type}
+                  checked={fileTypes.includes(type)} // Corrected check
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setChanges({
+                        fileTypes: [...fileTypes, type], // Add type to array if checked
+                      });
+                    } else {
+                      setChanges({
+                        fileTypes: fileTypes.filter((t: string) => t !== type), // Remove type from array if unchecked
+                      });
+                    }
+                  }}
+                />
+                <Label htmlFor={type} className="text-sm">
+                  {type}
+                </Label>
+              </div>
+            ))}
+          </div>
+          {errors.fileTypes && (
+            <span className="text-xs text-red-500">
+              {errors.fileTypes.message}
+            </span>
+          )}
+        </div>
+
+        {/* Required */}
         <div className="flex items-baseline justify-between w-full gap-2">
           <Label className="text-[13px] font-normal">Required</Label>
-          <div className="w-full max-w-[187px]  text-end">
+          <div className="w-full max-w-[187px] text-end">
             <Switch
-              checked={form.watch("required")}
+              checked={watch("required")}
               onCheckedChange={(value) => {
-                form.setValue("required", value); // Updates form state
-                setChanges({
-                  ...form.getValues(),
-                  required: value,
-                });
+                setValue("required", value);
+                setChanges({ required: value });
               }}
-              className=""
             />
           </div>
         </div>
       </form>
     </div>
-    // <div className="w-full pb-4">
-    //   <div className="w-full flex justify-between bg-gray-100 p-2 mb-2">
-    //     <span className="text-sm font-medium text-gray-600">File Upload</span>
-    //     <ChevronDown className="w-4 h-4" />
-    //   </div>
-    //   <form className="w-full space-y-3 px-4">
-    //     <Label>Label</Label>
-    //     <Input
-    //       {...register("label", {
-    //         onChange: (e) =>
-    //           setChanges({ ...form.getValues(), label: e.target.value }),
-    //       })}
-    //     />
-    //     <Label>Helper Text</Label>
-    //     <Input
-    //       {...register("helperText", {
-    //         onChange: (e) =>
-    //           setChanges({ ...form.getValues(), helperText: e.target.value }),
-    //       })}
-    //     />
-    //     <Label>Required</Label>
-    //     <Switch
-    //       checked={form.watch("required")}
-    //       onCheckedChange={(value) =>
-    //         setChanges({ ...form.getValues(), required: value })
-    //       }
-    //     />
-    //   </form>
-    // </div>
   );
 }
 
@@ -357,14 +418,38 @@ function FileUploadPublicFormComponent({
   control: any;
 }) {
   const block = blockInstance as NewFileBlockInstance;
-  const { label, helperText, required } = block.attributes;
+  const { label, helperText, required, fileSize, fileTypes } = block.attributes;
   const fieldName = `${blockInstance.id}`;
   return (
     <div className="flex flex-col gap-2 w-full">
       <Label className={errors?.[fieldName] ? "text-red-500" : ""}>
         {label} {required && <span className="text-red-500">*</span>}
       </Label>
-      <Input {...register(fieldName)} className="border" type="file" />
+      <Input
+        {...register(fieldName, {
+          validate: (fileList: FileList) => {
+            const file = fileList?.[0];
+
+            if (required && !file) {
+              return "This file is required.";
+            }
+
+            if (file && fileSize && file.size > fileSize * 1024 * 1024) {
+              return `File must be smaller than ${fileSize}MB.`;
+            }
+
+            if (file && fileTypes && !fileTypes.includes(file.type)) {
+              return `Invalid file type. Allowed types: ${fileTypes.join(
+                ", "
+              )}.`;
+            }
+
+            return true;
+          },
+        })}
+        type="file"
+        className={`border ${errors?.[fieldName] ? "border-red-500" : ""}`}
+      />
       {helperText && (
         <p className="text-muted-foreground text-[0.8rem]">{helperText}</p>
       )}

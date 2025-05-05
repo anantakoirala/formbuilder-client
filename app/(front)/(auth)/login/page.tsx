@@ -36,7 +36,7 @@ const Page = (props: Props) => {
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
       const response = await restApi.post("/api/auth/signin", data);
-      console.log("response", response);
+
       toast.success(response?.data?.message);
       route.push("/dashboard");
 
