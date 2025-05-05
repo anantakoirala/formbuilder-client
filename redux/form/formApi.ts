@@ -45,7 +45,7 @@ export const formApi = api.injectEndpoints({
       async onQueryStarted(arg, { queryFulfilled, dispatch }) {
         try {
           const result = await queryFulfilled;
-          console.log("result", result.data.result.jsonBlocks[0]);
+
           dispatch(setForm(result.data.result));
           if (result.data.result.jsonBlocks.length > 0) {
             dispatch(setBlocks(result.data.result.jsonBlocks[0]));

@@ -30,7 +30,7 @@ const Page = (props: Props) => {
   }
 
   return (
-    <div>
+    <div className="">
       <FormBuilder />
     </div>
   );

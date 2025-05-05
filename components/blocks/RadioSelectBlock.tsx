@@ -5,7 +5,7 @@ import {
   FormCategory,
   ObjectBlockType,
 } from "@/types/FormCategory";
-import { ChevronDown, CircleIcon, X } from "lucide-react";
+import { ChevronDown, CircleIcon, GripVertical, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Label } from "../ui/label";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
@@ -13,11 +13,13 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "../ui/input";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { updateChildBlock } from "@/redux/form/formSlice";
 import { Button } from "../ui/button";
 import { Switch } from "../ui/switch";
 import { generateUniqueId } from "@/lib/generateUniqueId";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
+import { RootState } from "@/redux/store";
 
 type Props = {};
 
@@ -43,9 +45,10 @@ export const RadioSelectBlock: ObjectBlockType = {
     icon: CircleIcon,
     label: "Radio",
   },
-  createInstance: (id: string) => ({
+  createInstance: (id: string, parentId?: string) => ({
     id,
     blockType,
+    parentId,
     attributes: {
       label: "Select an option",
       options: ["Option1", "Option2"],
@@ -57,7 +60,25 @@ export const RadioSelectBlock: ObjectBlockType = {
   formComponent: RadioSelectFormComponent,
   propertiesComponent: RadioSelectPropertiesComponent,
   publicFormComponent: RadioPublicFormComponent,
+  dragOverLayComponent: DragOverLayComponent,
 };
+
+function DragOverLayComponent({
+  blockInstance,
+}: {
+  blockInstance: FormBlockInstance;
+}) {
+  const block = blockInstance as NewBlockInstance;
+
+  const { label, options, required } = block.attributes;
+  return (
+    <div
+      className={`inline-block whitespace-nowrap px-2 py-1 rounded bg-white shadow text-left }`}
+    >
+      {label}
+    </div>
+  );
+}
 
 type NewBlockInstance = FormBlockInstance & {
   attributes: AttributeType;
@@ -69,27 +90,96 @@ function RadioSelectCanvasComponent({
   blockInstance: FormBlockInstance;
 }) {
   const block = blockInstance as NewBlockInstance;
-
+  const { childBlockDisabled, form } = useSelector(
+    (state: RootState) => state.form
+  );
   const { label, options, required } = block.attributes;
+
+  const draggable = useDraggable({
+    id: `${block.parentId}-radio-${block.id}`,
+    disabled: form.published,
+    data: {
+      blockType: block.blockType,
+      isRowLayoutChildItem: true,
+      blockId: block.id,
+      parentId: block.parentId,
+    },
+  });
+
+  const topCorner = useDroppable({
+    id: `${block.parentId}-radio-${block.id}-above`,
+    disabled: childBlockDisabled || form.published,
+    data: {
+      isRowLayoutChildItem: true,
+      blockId: block.id,
+      parentId: block.parentId,
+      isAbove: true,
+    },
+  });
+
+  const bottomCorner = useDroppable({
+    id: `${block.parentId}-radio-${block.id}-below`,
+    disabled: childBlockDisabled || form.published,
+    data: {
+      isRowLayoutChildItem: true,
+      blockId: block.id,
+      parentId: block.parentId,
+      isBelow: true,
+    },
+  });
+
   return (
-    <div className="flex flex-col gap-2 w-full">
-      <Label className="text-base font-normal mb-2">
-        {label}
-        {required && <span className="text-red-700">*</span>}
-      </Label>
-      <RadioGroup
-        disabled={true}
-        className="space-y-3 disabled:cursor-default pointer-events-none cursor-default"
+    <div className="relative group w-full py-2">
+      {/* Top drop zone */}
+      <div
+        ref={topCorner.setNodeRef}
+        className="absolute top-0 w-full h-[6px] -translate-y-full"
       >
-        {options.map((option: string, index: number) => (
-          <div className="flex items-center space-x-2" key={index}>
-            <RadioGroupItem disabled value={option} id={option} />
-            <Label htmlFor={option} className="font-normal">
-              {option}
-            </Label>
-          </div>
-        ))}
-      </RadioGroup>
+        {topCorner.isOver && (
+          <div className="w-full h-[6px] bg-primary rounded-t-md" />
+        )}
+      </div>
+
+      {/* Drag handle and content */}
+      <div
+        ref={draggable.setNodeRef}
+        {...draggable.listeners}
+        {...draggable.attributes}
+        className="relative flex flex-col gap-2 w-full pl-8"
+      >
+        <div className="absolute left-2 top-4 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab">
+          <GripVertical className="w-4 h-4 text-gray-400" />
+        </div>
+
+        <Label className="text-base font-normal mb-2">
+          {label}
+          {required && <span className="text-red-700">*</span>}
+        </Label>
+
+        <RadioGroup
+          disabled
+          className="space-y-3 disabled:cursor-default pointer-events-none cursor-default"
+        >
+          {options.map((option: string, index: number) => (
+            <div className="flex items-center space-x-2" key={index}>
+              <RadioGroupItem disabled value={option} id={option} />
+              <Label htmlFor={option} className="font-normal">
+                {option}
+              </Label>
+            </div>
+          ))}
+        </RadioGroup>
+      </div>
+
+      {/* Bottom drop zone */}
+      <div
+        ref={bottomCorner.setNodeRef}
+        className="absolute bottom-0 w-full h-[6px] translate-y-full"
+      >
+        {bottomCorner.isOver && (
+          <div className="w-full h-[6px] bg-primary rounded-b-md" />
+        )}
+      </div>
     </div>
   );
 }

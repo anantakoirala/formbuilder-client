@@ -6,6 +6,7 @@ type initialState = {
   form: Form;
   blockLayouts: FormBlockInstance[];
   selectedBlockLayoutId: string | null;
+  childBlockDisabled: boolean;
 };
 
 const initialState: initialState = {
@@ -15,14 +16,16 @@ const initialState: initialState = {
     name: "",
     description: "",
     jsonBlocks: {},
-    view: 0,
+    views: 0,
     responses: 0,
     published: false,
     createdAt: new Date(),
     updatedAt: new Date(),
+    responseCount: 0,
   },
   blockLayouts: [],
   selectedBlockLayoutId: null,
+  childBlockDisabled: true,
 };
 
 export const formSlice = createSlice({
@@ -86,6 +89,10 @@ export const formSlice = createSlice({
 
       // Insert the block at the new position
       state.blockLayouts.splice(insertIndex, 0, movedBlock);
+    },
+
+    setChildBlockDisabled: (state, action) => {
+      state.childBlockDisabled = action.payload;
     },
 
     insertBlockInSpecificPosition: (
@@ -153,6 +160,138 @@ export const formSlice = createSlice({
         );
       }
     },
+    repositionChildBlock: (
+      state,
+      action: PayloadAction<{
+        overParentId: string;
+        overChildId: string;
+        activeParentId: string;
+        activeChildId: string;
+        position: "above" | "below";
+      }>
+    ) => {
+      const {
+        overChildId,
+        overParentId,
+        activeChildId,
+        activeParentId,
+        position,
+      } = action.payload;
+
+      if (
+        overParentId === undefined ||
+        overChildId === undefined ||
+        activeChildId === undefined ||
+        position === undefined
+      ) {
+        return;
+      }
+      const activeParentLayout = state.blockLayouts.find(
+        (block) => block.id === activeParentId
+      );
+      if (!activeParentLayout || !activeParentLayout.childBlocks) return;
+
+      const childTobeMoved = activeParentLayout.childBlocks.find(
+        (child) => child.id === activeChildId
+      );
+      if (!childTobeMoved) return;
+      childTobeMoved.parentId = overParentId;
+      activeParentLayout.childBlocks = activeParentLayout.childBlocks.filter(
+        (child) => child.id !== activeChildId
+      );
+
+      // Step 2: Find the target (over) layout and insert at correct position
+      const overParentLayout = state.blockLayouts.find(
+        (block) => block.id === overParentId
+      );
+      if (!overParentLayout || !overParentLayout.childBlocks) return;
+
+      const overIndex = overParentLayout.childBlocks.findIndex(
+        (child) => child.id === overChildId
+      );
+      if (overIndex === -1) return;
+
+      const insertIndex = position === "above" ? overIndex : overIndex + 1;
+
+      // Insert the moved child into new position
+      overParentLayout.childBlocks.splice(insertIndex, 0, childTobeMoved);
+    },
+    insertNewBlockAccordingToChildPosition: (
+      state,
+      action: PayloadAction<{
+        overParentId: string;
+        overChildId: string;
+        newBlockLayout: FormBlockInstance;
+        position: "below" | "above";
+      }>
+    ) => {
+      const { overParentId, overChildId, newBlockLayout, position } =
+        action.payload;
+
+      const parentBlock = state.blockLayouts.find(
+        (block) => block.id === overParentId
+      );
+      if (!parentBlock) return;
+
+      if (parentBlock.childBlocks) {
+        const overIndex = parentBlock.childBlocks.findIndex(
+          (child) => child.id === overChildId
+        );
+        if (overIndex === -1) return;
+
+        const insertIndex = position === "above" ? overIndex : overIndex + 1;
+
+        // Insert the moved child into new position
+        parentBlock.childBlocks.splice(insertIndex, 0, newBlockLayout);
+      } else {
+        parentBlock.childBlocks = [newBlockLayout];
+      }
+    },
+    insertChildElementToNewRowLayout: (
+      state,
+      action: PayloadAction<{
+        rowLayoutId: string;
+        childParentId: string;
+        childId: string;
+      }>
+    ) => {
+      const { childId, childParentId, rowLayoutId } = action.payload;
+      if (
+        childId === undefined ||
+        childParentId === undefined ||
+        rowLayoutId === undefined
+      ) {
+        return;
+      }
+
+      const appendableRowLayout = state.blockLayouts.find(
+        (layout) => layout.id === rowLayoutId
+      );
+      if (!appendableRowLayout) {
+        return;
+      }
+
+      const activeParentLayout = state.blockLayouts.find(
+        (block) => block.id === childParentId
+      );
+      if (!activeParentLayout || !activeParentLayout.childBlocks) return;
+
+      const childTobeMoved = activeParentLayout.childBlocks.find(
+        (child) => child.id === childId
+      );
+      if (!childTobeMoved) return;
+
+      childTobeMoved.parentId = rowLayoutId;
+      activeParentLayout.childBlocks = activeParentLayout.childBlocks.filter(
+        (child) => child.id !== childId
+      );
+
+      if (!appendableRowLayout.childBlocks) {
+        appendableRowLayout.childBlocks = [childTobeMoved];
+      } else {
+        appendableRowLayout.childBlocks.push(childTobeMoved); // <- this was missing
+      }
+    },
   },
 });
 
@@ -166,5 +305,9 @@ export const {
   insertBlockInSpecificPosition,
   updateBlockLayout,
   updateChildBlock,
+  repositionChildBlock,
+  setChildBlockDisabled,
+  insertNewBlockAccordingToChildPosition,
+  insertChildElementToNewRowLayout,
 } = formSlice.actions;
 export default formSlice.reducer;

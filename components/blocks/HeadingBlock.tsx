@@ -7,10 +7,10 @@ import {
   ObjectBlockType,
 } from "@/types/FormCategory";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronDown, HeadingIcon } from "lucide-react";
+import { ChevronDown, GripVertical, HeadingIcon } from "lucide-react";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { z } from "zod";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
@@ -21,6 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
+import { RootState } from "@/redux/store";
 
 const blockCategory: FormCategory = "Field";
 const blockType: FormBlockType = "Heading";
@@ -53,9 +55,10 @@ const propertiesValidateSchema = z.object({
 export const HeadingBlock: ObjectBlockType = {
   blockType,
   blockCategory,
-  createInstance: (id: string) => ({
+  createInstance: (id: string, parentId?: string) => ({
     id,
     blockType,
+    parentId,
     attributes: {
       label: "Heading",
       level: 1, // Default to H1
@@ -71,8 +74,24 @@ export const HeadingBlock: ObjectBlockType = {
   formComponent: HeadingFormComponent,
   propertiesComponent: HeadingPropertiesComponent,
   publicFormComponent: HeadingPublicFormComponent,
+  dragOverLayComponent: DragOverLayComponent,
 };
 
+function DragOverLayComponent({
+  blockInstance,
+}: {
+  blockInstance: FormBlockInstance;
+}) {
+  const block = blockInstance as NewHeadingBlockInstance;
+  const { level, label, fontSize, fontWeight } = block.attributes;
+  return (
+    <div
+      className={`inline-block whitespace-nowrap px-2 py-1 rounded bg-white shadow text-left }`}
+    >
+      {label}
+    </div>
+  );
+}
 type NewHeadingBlockInstance = FormBlockInstance & {
   attributes: AttributeType;
 };
@@ -83,19 +102,90 @@ function HeadingCanvasComponent({
   blockInstance: FormBlockInstance;
 }) {
   const block = blockInstance as NewHeadingBlockInstance;
+  const { childBlockDisabled, form } = useSelector(
+    (state: RootState) => state.form
+  );
+
+  const draggable = useDraggable({
+    id: `${block.parentId}-heading-${block.id}`,
+    disabled: form.published,
+    data: {
+      blockType: block.blockType,
+      isRowLayoutChildItem: true,
+      blockId: block.id,
+      parentId: block.parentId,
+    },
+  });
+
   const { level, label, fontSize, fontWeight } = block.attributes;
+
+  const topCorner = useDroppable({
+    id: `${block.parentId}-heading-${block.id}-above`,
+    disabled: childBlockDisabled || form.published,
+    data: {
+      isRowLayoutChildItem: true,
+      blockId: block.id,
+      parentId: block.parentId,
+      isAbove: true,
+    },
+  });
+
+  const bottomCorner = useDroppable({
+    id: `${block.parentId}-heading-${block.id}-below`,
+    disabled: childBlockDisabled || form.published,
+    data: {
+      isRowLayoutChildItem: true,
+      blockId: block.id,
+      parentId: block.parentId,
+      isBelow: true,
+    },
+  });
   return (
-    <div
-      className={`w-full text-left ${fontSizeClass[fontSize]} ${fontWeightClass[fontWeight]}`}
-    >
-      {React.createElement(
-        `h${level}`, // Dynamically create heading tag based on 'level'
-        {}, // No additional props for the heading element
-        label // Label for the heading
-      )}
+    <div className="relative group w-full py-2">
+      {/* Top dropzone */}
+      <div
+        ref={topCorner.setNodeRef}
+        className="absolute top-0 w-full h-[6px] -translate-y-full"
+      >
+        {topCorner.isOver && (
+          <div className="w-full h-[6px] bg-primary rounded-t-md" />
+        )}
+      </div>
+
+      {/* Drag handle and content */}
+      <div
+        ref={draggable.setNodeRef}
+        {...draggable.listeners}
+        {...draggable.attributes}
+        className="relative flex items-center pl-8"
+      >
+        <div className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab">
+          <GripVertical className="w-4 h-4 text-gray-400" />
+        </div>
+        <div
+          className={`w-full text-left ${fontSizeClass[fontSize]} ${fontWeightClass[fontWeight]}`}
+        >
+          {React.createElement(
+            `h${level}`, // Dynamically create heading tag based on 'level'
+            {}, // No additional props for the heading element
+            label // Label for the heading
+          )}
+        </div>
+      </div>
+
+      {/* Bottom dropzone */}
+      <div
+        ref={bottomCorner.setNodeRef}
+        className="absolute bottom-0 w-full h-[6px] translate-y-full"
+      >
+        {bottomCorner.isOver && (
+          <div className="w-full h-[6px] bg-primary rounded-b-md" />
+        )}
+      </div>
     </div>
   );
 }
+
 function HeadingFormComponent({
   blockInstance,
 }: {

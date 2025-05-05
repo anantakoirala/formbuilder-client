@@ -11,6 +11,7 @@ import { generateUniqueId } from "@/lib/generateUniqueId";
 import { cn } from "@/lib/utils";
 import {
   duplicateBlockLayout,
+  insertChildElementToNewRowLayout,
   removeBlockLayout,
   setBlocks,
   setSelectedBlockLayoutId,
@@ -57,7 +58,16 @@ export const RowLayoutBlock: ObjectBlockType = {
   formComponent: RowLayoutFormComponent,
   propertiesComponent: RowLayoutPropertiesComponent,
   publicFormComponent: RootLayoutPublicFormComponent,
+  dragOverLayComponent: DragOverLayComponent,
 };
+
+function DragOverLayComponent({
+  blockInstance,
+}: {
+  blockInstance: FormBlockInstance;
+}) {
+  return <div>hello</div>;
+}
 
 function RowLayoutCanvasComponent({
   blockInstance,
@@ -65,6 +75,8 @@ function RowLayoutCanvasComponent({
   blockInstance: FormBlockInstance;
 }) {
   const [activeBlock, setActiveBlock] = useState<Active | null>(null);
+
+  const { form } = useSelector((state: RootState) => state.form);
   const childBlocks = blockInstance.childBlocks || [];
 
   const isMobile = useIsMobile();
@@ -92,7 +104,6 @@ function RowLayoutCanvasComponent({
 
       const isBlockBtnElement = active?.data?.current?.isBlockBtnElement;
       const isLayout = active?.data?.current?.blockType;
-
       const overBlockId = over?.id;
 
       if (
@@ -102,13 +113,31 @@ function RowLayoutCanvasComponent({
       ) {
         const blockType = active?.data?.current?.blockType;
         const newBlock = FormBlocks[blockType as FormBlockType].createInstance(
-          generateUniqueId()
+          generateUniqueId(),
+          blockInstance.id
         );
 
         const updatedChildBlocks = [...childBlocks, newBlock];
 
         dispatch(
           updateBlockLayout({ id: blockInstance.id, updatedChildBlocks })
+        );
+      }
+
+      const isChildElement = active?.data?.current?.isRowLayoutChildItem;
+      const isLayoutDropArea = over?.data?.current?.isLayoutDropArea;
+
+      if (isChildElement && isLayoutDropArea) {
+        const childParentId = active?.data?.current?.parentId;
+        const childId = active?.data?.current?.blockId;
+        const rowLayoutId = over?.id;
+
+        dispatch(
+          insertChildElementToNewRowLayout({
+            rowLayoutId: rowLayoutId as string,
+            childParentId,
+            childId,
+          })
         );
       }
     },
@@ -126,6 +155,7 @@ function RowLayoutCanvasComponent({
 
   // Duplicate
   const duplicate = (id: string) => {
+    if (form.published) return;
     const foundBlock = blockLayouts.find((layout) => layout.id === id);
     if (foundBlock) {
       const uniqueId = `layout-${generateUniqueId()}`;
@@ -149,11 +179,11 @@ function RowLayoutCanvasComponent({
   // Remove child block
 
   const removeChildBlock = (childBlockId: string) => {
-    console.log("childBlockId", childBlockId);
+    if (form.published) return;
     const filteredChildBlock = childBlocks.filter(
       (block) => block.id !== childBlockId
     );
-    console.log("filtered blocks", filteredChildBlock);
+
     dispatch(
       updateBlockLayout({
         id: blockInstance.id,
@@ -163,6 +193,7 @@ function RowLayoutCanvasComponent({
   };
 
   const setSelectedLayout = (id: string) => {
+    if (form.published) return;
     dispatch(setSelectedBlockLayoutId({ id }));
     if (isMobile) {
       dispatch(openSheet());
@@ -173,7 +204,7 @@ function RowLayoutCanvasComponent({
 
   const draggable = useDraggable({
     id: blockInstance.id + "_drag-area",
-    disabled: blockInstance.isLocked,
+    disabled: blockInstance.isLocked || form.published,
     data: {
       blockType: blockInstance.blockType,
       blockId: blockInstance.id,
@@ -184,13 +215,13 @@ function RowLayoutCanvasComponent({
   if (draggable.isDragging) return;
 
   return (
-    <div className="max-w-full" ref={draggable.setNodeRef}>
+    <div className="max-w-full mb-12 " ref={draggable.setNodeRef}>
       {blockInstance.isLocked && <Border />}
 
       <Card
         ref={droppable.setNodeRef}
         className={cn(
-          `w-full bg-white relative border shadow-sm min-h-[120px] max-w-[768px] rounded-md p-0 `,
+          `w-full bg-white relative border shadow-sm min-h-[120px] max-w-[768px] rounded-md p-0 mb-12 `,
           blockInstance.isLocked && "rounded-t-none"
         )}
         onClick={() => setSelectedLayout(blockInstance.id)}
@@ -211,7 +242,7 @@ function RowLayoutCanvasComponent({
             </div>
           )}
           <div className="w-full flex flex-wrap gap-2">
-            {droppable.isOver &&
+            {/* {droppable.isOver &&
               !blockInstance.isLocked &&
               activeBlock?.data?.current?.isBlockBtnElement &&
               !allBlockLayouts.includes(
@@ -222,7 +253,7 @@ function RowLayoutCanvasComponent({
                     Drag it here
                   </div>
                 </div>
-              )}
+              )} */}
             {!droppable.isOver && childBlocks?.length == 0 ? (
               <PlaceHolder />
             ) : (
@@ -234,26 +265,28 @@ function RowLayoutCanvasComponent({
                   >
                     {/* Child block */}
                     <ChildCanvasComponentWrapper blockInstance={childBlock} />
-                    {isSelected && !blockInstance.isLocked && (
-                      <Button
-                        size={"icon"}
-                        variant={"ghost"}
-                        className="bg-transparent"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeChildBlock(childBlock.id);
-                        }}
-                      >
-                        <X />
-                      </Button>
-                    )}
+                    {isSelected &&
+                      !blockInstance.isLocked &&
+                      !form.published && (
+                        <Button
+                          size={"icon"}
+                          variant={"ghost"}
+                          className="bg-transparent"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeChildBlock(childBlock.id);
+                          }}
+                        >
+                          <X />
+                        </Button>
+                      )}
                   </div>
                 ))}
               </div>
             )}
           </div>
         </CardContent>
-        {isSelected && !blockInstance.isLocked && (
+        {isSelected && !blockInstance.isLocked && !form.published && (
           <CardFooter className="flex items-center gap-3  justify-end border-t py-3">
             <Button
               variant={"outline"}

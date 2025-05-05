@@ -48,9 +48,10 @@ const CreateFormDialog = ({
   } = form;
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
+      const parentId = `layout-` + generateUniqueId();
       const jsonBlocks = [
         {
-          id: `layout-` + generateUniqueId(),
+          id: parentId,
           isLocked: false,
           blockType: "RowLayout",
           attributes: {},
@@ -58,6 +59,7 @@ const CreateFormDialog = ({
             {
               id: generateUniqueId(),
               blockType: "Heading",
+              parentId,
               attributes: {
                 label: data.name || "untitled",
                 level: 1,
@@ -68,6 +70,7 @@ const CreateFormDialog = ({
             {
               id: generateUniqueId(),
               blockType: "Paragraph",
+              parentId,
               attributes: {
                 label: "Paragraph",
                 text: data.description || "Add a description",
@@ -78,7 +81,7 @@ const CreateFormDialog = ({
           ],
         },
       ];
-      console.log("data", data);
+
       const updatedData = {
         ...data,
         jsonBlocks,

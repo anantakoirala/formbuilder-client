@@ -15,12 +15,13 @@ export type FormBlockType =
 export type ObjectBlockType = {
   blockCategory: FormCategory;
   blockType: FormBlockType;
-  createInstance: (id: string) => FormBlockInstance;
+  createInstance: (id: string, parentId?: string) => FormBlockInstance;
   blockBtnElement: {
     icon: React.ElementType;
     label: string;
   };
   canvasComponent: React.FC<{ blockInstance: FormBlockInstance }>;
+  dragOverLayComponent: React.FC<{ blockInstance: FormBlockInstance }>;
   formComponent: React.FC<{ blockInstance: FormBlockInstance }>;
   propertiesComponent: React.FC<{
     blockInstance: FormBlockInstance;
@@ -39,6 +40,7 @@ export type ObjectBlockType = {
 export type FormBlockInstance = {
   id: string;
   blockType: FormBlockType;
+  parentId?: string;
   attributes?: Record<string, any>;
   childBlocks?: FormBlockInstance[];
   isLocked?: boolean;

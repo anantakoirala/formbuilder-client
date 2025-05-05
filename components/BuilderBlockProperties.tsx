@@ -22,7 +22,7 @@ const BuilderBlockProperties = (props: Props) => {
   const LayoutPropertyBlock =
     foundSelectedBlock &&
     FormBlocks[foundSelectedBlock.blockType]?.propertiesComponent;
-  console.log("layoutPropertyBlock");
+
   return (
     <div className="relative w-[320px]">
       <div className="fixed right w-[320px] bg-white border-l shadow-sm h-screen pb-36 mt-0 overflow-auto">

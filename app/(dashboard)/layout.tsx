@@ -15,7 +15,7 @@ const layout = ({ children }: Props) => {
       <AuthProvider>
         <div className="flex min-h-screen w-full flex-col">
           <Header />
-          <div className="w-full flex-1">
+          <div className="w-full ">
             <div className="">{children}</div>
           </div>
         </div>

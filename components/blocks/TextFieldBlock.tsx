@@ -4,7 +4,7 @@ import {
   FormCategory,
   ObjectBlockType,
 } from "@/types/FormCategory";
-import { ChevronDown, TextCursorInput } from "lucide-react";
+import { ChevronDown, GripVertical, TextCursorInput } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
@@ -12,8 +12,10 @@ import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Switch } from "../ui/switch";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { updateChildBlock } from "@/redux/form/formSlice";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
+import { RootState } from "@/redux/store";
 
 type Props = {};
 
@@ -41,9 +43,10 @@ export const TextFieldBlock: ObjectBlockType = {
     icon: TextCursorInput,
     label: "Text Field",
   },
-  createInstance: (id: string) => ({
+  createInstance: (id: string, parentId?: string) => ({
     id,
     blockType,
+    parentId,
     attributes: {
       label: "Text Field",
       helperText: "",
@@ -56,7 +59,24 @@ export const TextFieldBlock: ObjectBlockType = {
   formComponent: TextFieldFormComponent,
   propertiesComponent: TextFieldPropertiesComponent,
   publicFormComponent: TextPublicFormComponent,
+  dragOverLayComponent: DragOverLayComponent,
 };
+
+function DragOverLayComponent({
+  blockInstance,
+}: {
+  blockInstance: FormBlockInstance;
+}) {
+  const block = blockInstance as NewTextBlockInstance;
+  const { label, placeHolder, required, helperText } = block.attributes;
+  return (
+    <div
+      className={`inline-block whitespace-nowrap px-2 py-1 rounded bg-white shadow text-left }`}
+    >
+      {label}
+    </div>
+  );
+}
 
 type NewTextBlockInstance = FormBlockInstance & {
   attributes: AttributeType;
@@ -68,21 +88,93 @@ function TextFieldCanvasComponent({
   blockInstance: FormBlockInstance;
 }) {
   const block = blockInstance as NewTextBlockInstance;
-  const { helperText, label, placeHolder, required } = block.attributes;
+  const { label, placeHolder, required, helperText } = block.attributes;
+  const { childBlockDisabled, form } = useSelector(
+    (state: RootState) => state.form
+  );
+  const draggable = useDraggable({
+    id: `${block.parentId}-textfield-${block.id}`,
+    disabled: form.published,
+    data: {
+      blockType: block.blockType,
+      isRowLayoutChildItem: true,
+      blockId: block.id,
+      parentId: block.parentId,
+    },
+  });
+
+  const topCorner = useDroppable({
+    id: `${block.parentId}-textfield-${block.id}-above`,
+    disabled: childBlockDisabled || form.published,
+    data: {
+      isRowLayoutChildItem: true,
+      blockId: block.id,
+      parentId: block.parentId,
+      isAbove: true,
+    },
+  });
+
+  const bottomCorner = useDroppable({
+    id: `${block.parentId}-textfield-${block.id}-below`,
+    disabled: childBlockDisabled || form.published,
+    data: {
+      isRowLayoutChildItem: true,
+      blockId: block.id,
+      parentId: block.parentId,
+      isBelow: true,
+    },
+  });
+
   return (
-    <div className="flex flex-col gap-2 w-full">
-      <Label className="text-base font-normal mb-2">
-        {label}
-        {required && <span className="text-red-500">*</span>}
-      </Label>
-      <Input
-        readOnly
-        className="pointer-events-none cursor-default h-10"
-        placeholder={placeHolder}
-      />
-      {helperText && (
-        <p className="text-muted-foreground text-[0.8rem] ">{helperText}</p>
-      )}
+    <div className="relative group w-full py-2">
+      {/* Top dropzone */}
+      <div
+        ref={topCorner.setNodeRef}
+        className="absolute top-0 w-full h-[6px] -translate-y-full"
+      >
+        {topCorner.isOver && (
+          <div className="w-full h-[6px] bg-primary rounded-t-md" />
+        )}
+      </div>
+
+      {/* Drag handle + Input content */}
+      <div
+        ref={draggable.setNodeRef}
+        {...draggable.listeners}
+        {...draggable.attributes}
+        className="relative flex items-start pl-8"
+      >
+        {/* Drag handle */}
+        <div className="absolute left-2 top-3 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab">
+          <GripVertical className="w-4 h-4 text-gray-400" />
+        </div>
+
+        {/* Input UI */}
+        <div className="flex flex-col gap-2 w-full">
+          <Label className="text-base font-normal">
+            {label}
+            {required && <span className="text-red-500">*</span>}
+          </Label>
+          <Input
+            readOnly
+            className="pointer-events-none cursor-default h-10"
+            placeholder={placeHolder}
+          />
+          {helperText && (
+            <p className="text-muted-foreground text-[0.8rem]">{helperText}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom dropzone */}
+      <div
+        ref={bottomCorner.setNodeRef}
+        className="absolute bottom-0 w-full h-[6px] translate-y-full"
+      >
+        {bottomCorner.isOver && (
+          <div className="w-full h-[6px] bg-primary rounded-b-md" />
+        )}
+      </div>
     </div>
   );
 }

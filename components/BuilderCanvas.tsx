@@ -15,6 +15,8 @@ import { FormBlockInstance, FormBlockType } from "@/types/FormCategory";
 import { generateUniqueId } from "@/lib/generateUniqueId";
 import {
   insertBlockInSpecificPosition,
+  insertNewBlockAccordingToChildPosition,
+  repositionChildBlock,
   setBlocks,
   setRepositionBlockLayout,
 } from "@/redux/form/formSlice";
@@ -37,19 +39,94 @@ const BuilderCanvas = (props: Props) => {
     },
     onDragEnd: (event: DragEndEvent) => {
       const { active, over } = event;
+
       if (!over || !active) return;
       setActiveBlock(null);
 
       const isBlockBtnElement = active?.data?.current?.isBlockBtnElement;
+
       const isBlockLayout = active?.data?.current?.blockType;
 
+      const isRowLayoutChildItem = active?.data?.current?.isRowLayoutChildItem;
+
+      // Child element is dragged and dropped over or below child element
+      if (isRowLayoutChildItem && over?.data?.current?.isRowLayoutChildItem) {
+        console.log("yes yse");
+        const isDroppingOverChildBlockLayoutAbove =
+          over?.data?.current?.isAbove;
+        const isDroppingOverChildBlockLayoutBelow =
+          over?.data?.current?.isBelow;
+
+        const isDroppingOverChildLayout =
+          isDroppingOverChildBlockLayoutAbove ||
+          isDroppingOverChildBlockLayoutBelow;
+
+        if (isDroppingOverChildLayout) {
+          let position: "above" | "below" = "below";
+          if (isDroppingOverChildBlockLayoutAbove) {
+            position = "above";
+          }
+
+          dispatch(
+            repositionChildBlock({
+              overParentId: over?.data?.current?.parentId,
+              overChildId: over?.data?.current?.blockId,
+              activeParentId: active?.data?.current?.parentId,
+              activeChildId: active?.data?.current?.blockId,
+              position,
+            })
+          );
+
+          return;
+        }
+      }
+
+      const overChildElement = over?.data?.current?.isRowLayoutChildItem;
+
+      // If block is dragged from sidebar and dropped over or below child element
+      if (isBlockBtnElement && overChildElement) {
+        const blockType = active.data?.current?.blockType;
+        const newBlockLayout = FormBlocks[
+          blockType as FormBlockType
+        ].createInstance(generateUniqueId(), over?.data?.current?.parentId);
+
+        const isDroppingOverChildBlockLayoutAbove =
+          over?.data?.current?.isAbove;
+        const isDroppingOverChildBlockLayoutBelow =
+          over?.data?.current?.isBelow;
+
+        const isDroppingOverChildLayout =
+          isDroppingOverChildBlockLayoutAbove ||
+          isDroppingOverChildBlockLayoutBelow;
+
+        if (isDroppingOverChildLayout) {
+          let position: "above" | "below" = "below";
+          if (isDroppingOverChildBlockLayoutAbove) {
+            position = "above";
+          }
+
+          dispatch(
+            insertNewBlockAccordingToChildPosition({
+              overParentId: over?.data?.current?.parentId,
+              overChildId: over?.data?.current?.blockId,
+              newBlockLayout,
+              position,
+            })
+          );
+
+          return;
+        }
+      }
+
       const isDraggingOverCanvas = over.data?.current?.isBuilderCanvasDropArea;
+      // Checking if the row layout is directly dropped to the main canvas area not above or below the existing rowlayout in canvas
       if (
         isBlockBtnElement &&
         allBlockLayouts.includes(isBlockLayout) &&
         isDraggingOverCanvas
       ) {
         const blockType = active.data?.current?.blockType;
+
         const newBlockLayout = FormBlocks[
           blockType as FormBlockType
         ].createInstance(generateUniqueId());
@@ -91,7 +168,7 @@ const BuilderCanvas = (props: Props) => {
         return;
       }
 
-      // Changing position of existing block layouts
+      // Changing position of existing Row block layouts
 
       const isDraggingCanvasLayout = active.data?.current?.isCanvasLayout;
 
@@ -154,7 +231,7 @@ const BuilderCanvas = (props: Props) => {
 
   return (
     <div className="relative w-full h-[calc(100vh-65px)] px-5 md:px-0 pt-4 pb-[120px] overflow-auto transition-all duration-300">
-      <div className="w-full h-full max-w-[650px] mx-auto">
+      <div className="w-full h-full max-w-[650px] mx-auto ">
         {/* Dropable canvas */}
         <div
           ref={droppable.setNodeRef}
@@ -165,7 +242,9 @@ const BuilderCanvas = (props: Props) => {
               "ring-4 ring-primary/20 ring-inset"
           )}
         >
+          {/* Initial image */}
           <div className="w-full mb-3 bg-white bg-[url(/form-bg.jpg)] bg-center bg-cover bg-no-repeat border shadow-sm h-[135px] max-w-[768px] rounded-md px-1"></div>
+          {/* Row layouts */}
           {blockLayouts.length > 0 && (
             <div className="flex flex-col w-full gap-4">
               {blockLayouts.map((blockLayout) => (
