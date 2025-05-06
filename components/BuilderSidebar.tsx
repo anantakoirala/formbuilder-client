@@ -60,7 +60,7 @@ const BuilderSidebar = (props: Props) => {
             >
               Blocks
             </button>
-            <button
+            {/* <button
               className={cn(
                 `p-[5px] flex-1 bg-transparent transition-colors ease-in-out rounded-full text-center font-medium text-sm text-muted-foreground`,
                 { "bg-primary text-white": tabs === "settings" }
@@ -68,12 +68,12 @@ const BuilderSidebar = (props: Props) => {
               onClick={() => setTabs("settings")}
             >
               Settings
-            </button>
+            </button> */}
           </div>
           {/* Form blocks */}
           {tabs === "blocks" && <FormBlocksBox />}
           {/* Form Settings */}
-          {tabs === "settings" && <FormSettings />}
+          {/* {tabs === "settings" && <FormSettings />} */}
         </div>
       </SidebarContent>
     </Sidebar>

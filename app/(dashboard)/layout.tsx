@@ -13,12 +13,16 @@ const layout = ({ children }: Props) => {
   return (
     <Provider store={store}>
       <AuthProvider>
-        <div className="flex min-h-screen w-full flex-col">
+        <div className="w-full flex flex-col min-h-screen ">
+          <Header />
+          <div>{children}</div>
+        </div>
+        {/* <div className="flex min-h-screen w-full flex-col">
           <Header />
           <div className="w-full ">
             <div className="">{children}</div>
           </div>
-        </div>
+        </div> */}
       </AuthProvider>
     </Provider>
   );

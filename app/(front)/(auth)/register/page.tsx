@@ -122,8 +122,8 @@ const Page = (props: Props) => {
           </button>
         </div>
       </form>
-      <div className="text-[14px text-center pt-12]">
-        ALready have an account?
+      <div className="text-[14px text-center pt-12] ">
+        Already have an account?{" "}
         <Link href={"/login"} className="text-[#8228D9] underline">
           Log in
         </Link>

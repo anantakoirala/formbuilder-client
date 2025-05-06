@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,6 +8,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { restApi } from "@/api";
 import { handleApiError } from "@/lib/handleApiError";
+import axios from "axios";
 
 type Props = {};
 
@@ -45,6 +46,37 @@ const Page = (props: Props) => {
       handleApiError(error);
     }
   };
+
+  useEffect(() => {
+    const checkAuthenticatedUser = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API}/api/auth/me`,
+          {
+            withCredentials: true,
+            headers: {
+              "Cache-Control": "no-cache",
+              Pragma: "no-cache",
+            },
+            params: {
+              _: new Date().getTime(), // cache buster
+            },
+          }
+        );
+        console.log("response", response);
+
+        if (response.status !== 200 || !response.data?.user?.email) {
+          throw new Error("User not authenticated");
+        }
+
+        route.push("/dashboard");
+      } catch (error: any) {
+        console.log("error", error);
+      }
+    };
+
+    checkAuthenticatedUser();
+  }, []);
   return (
     <div className="mt-10 ">
       <h1 className="lg:text-5xl text-3xl text-center font-extrabold">

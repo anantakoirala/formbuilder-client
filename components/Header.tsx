@@ -45,10 +45,10 @@ const Header = (props: Props) => {
       name: "Responds",
       pathname: `/dashboard/form/responds/${formId}`,
     },
-    {
-      name: "Settings",
-      pathname: "/settings",
-    },
+    // {
+    //   name: "Settings",
+    //   pathname: "/settings",
+    // },
   ];
 
   const isMobile = useIsMobile();

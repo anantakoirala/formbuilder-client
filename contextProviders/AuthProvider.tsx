@@ -56,7 +56,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   if (loading) {
     return (
-      <div className="w-full h-screen bg-gray-800 flex items-center justify-center">
+      <div className="flex items-center justify-center">
         {/* Spinner */}
         Loading...
       </div>
