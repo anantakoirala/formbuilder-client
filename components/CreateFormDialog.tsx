@@ -18,7 +18,10 @@ import { generateUniqueId } from "@/lib/generateUniqueId";
 import { defaultBackgroundColor, defaultPrimaryColor } from "@/constants";
 
 const formSchema = z.object({
-  name: z.string().min(3, { message: "Name must be at least two characters" }),
+  name: z
+    .string()
+    .min(3, { message: "Name must be at least two characters" })
+    .max(30, { message: "Name must not be at more than 30 characters" }),
   description: z.string().optional(),
 });
 

@@ -16,12 +16,46 @@ import FormBlocksBox from "./FormBlocksBox";
 import FormSettings from "./FormSettings";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import {
+  useChangeFormNameMutation,
+  useUpdateFormMutation,
+} from "@/redux/form/formApi";
+import { handleApiError } from "@/lib/handleApiError";
+import toast from "react-hot-toast";
 
 type Props = {};
 
 const BuilderSidebar = (props: Props) => {
+  const [isEditing, setIsEditing] = useState(false);
   const { form } = useSelector((state: RootState) => state.form);
+  const [formName, setFormName] = useState(form?.name || "Untitled");
   const [tabs, setTabs] = useState<"blocks" | "settings">("blocks");
+
+  const [updateName, { isLoading }] = useChangeFormNameMutation();
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormName(e.target.value);
+  };
+
+  const handleBlur = async () => {
+    console.log("form", form.id);
+    try {
+      setIsEditing(false);
+      await updateName({ data: { formId: form.id, name: formName } }).unwrap();
+      toast.success("Name edited successfully");
+    } catch (error) {
+      handleApiError(error);
+    }
+
+    // dispatch update to redux or backend here, e.g. updateFormName(form._id, formName)
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleBlur();
+    }
+  };
   return (
     <Sidebar className="border-r  pt-16 h-full">
       <SidebarHeader className="px-0 bg-background">
@@ -38,9 +72,24 @@ const BuilderSidebar = (props: Props) => {
                 <BreadcrumbItem>
                   <BreadcrumbPage className="flex items-center gap-1">
                     <FileTextIcon className="w-4 h-4 mb-[3px]" />
-                    <h5 className="truncate flex w-[110px] text-sm">
-                      {form?.name || "Untitled"}
-                    </h5>
+                    {isEditing ? (
+                      <input
+                        className="text-sm w-[110px] truncate border-none outline-none bg-transparent"
+                        value={formName}
+                        autoFocus
+                        onChange={handleNameChange}
+                        onBlur={handleBlur}
+                        onKeyDown={handleKeyDown}
+                      />
+                    ) : (
+                      <h5
+                        onClick={() => setIsEditing(true)}
+                        className="truncate flex w-[110px] text-sm cursor-pointer hover:underline"
+                        title={formName}
+                      >
+                        {formName}
+                      </h5>
+                    )}
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>

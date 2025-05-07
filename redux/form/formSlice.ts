@@ -33,7 +33,6 @@ export const formSlice = createSlice({
   initialState,
   reducers: {
     setForm: (state, action) => {
-      console.log("action.payload", action.payload);
       state.form = action.payload;
     },
     setBlocks: (state, action) => {
@@ -43,6 +42,9 @@ export const formSlice = createSlice({
       state.blockLayouts = state.blockLayouts.filter(
         (layout) => layout.id !== action.payload
       );
+    },
+    removeSelectedBlockLayoutId: (state, action) => {
+      state.selectedBlockLayoutId = action.payload;
     },
     duplicateBlockLayout: (
       state,
@@ -293,6 +295,10 @@ export const formSlice = createSlice({
         appendableRowLayout.childBlocks.push(childTobeMoved); // <- this was missing
       }
     },
+
+    setName: (state, action) => {
+      state.form.name = action.payload;
+    },
     resetFormState: () => initialState,
   },
 });
@@ -312,5 +318,7 @@ export const {
   insertNewBlockAccordingToChildPosition,
   insertChildElementToNewRowLayout,
   resetFormState,
+  setName,
+  removeSelectedBlockLayoutId,
 } = formSlice.actions;
 export default formSlice.reducer;

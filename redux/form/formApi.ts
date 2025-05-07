@@ -1,5 +1,5 @@
 import { api } from "../api";
-import { setBlocks, setForm } from "./formSlice";
+import { setBlocks, setForm, setName } from "./formSlice";
 
 export const formApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -130,6 +130,32 @@ export const formApi = api.injectEndpoints({
       },
       invalidatesTags: ["forms"],
     }),
+
+    changeFormName: builder.mutation({
+      query: ({ data }) => {
+        console.log("form data", data);
+        return {
+          url: `/api/forms/update-form-name`,
+          method: "POST",
+          body: data,
+          credentials: "include" as const,
+          headers: {
+            "Content-Type": "application/json", // Ensure headers are set
+          },
+        };
+      },
+      async onQueryStarted(arg, { queryFulfilled, dispatch }) {
+        try {
+          const result = await queryFulfilled;
+
+          dispatch(setName(result.data.name));
+        } catch (error: any) {
+          console.log("updated errir");
+          console.log(error);
+        }
+      },
+      //invalidatesTags: ["forms"],
+    }),
   }),
 });
 
@@ -142,4 +168,5 @@ export const {
   useSubmitFormMutation,
   useLazyGetFormResponsesQuery,
   useDeleteFormMutation,
+  useChangeFormNameMutation,
 } = formApi;

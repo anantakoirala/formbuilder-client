@@ -5,7 +5,7 @@ type Props = {
 };
 
 const layout = ({ children }: Props) => {
-  return <div className="w-full h-auto">{children}</div>;
+  return <div className="w-full min-h-screen">{children}</div>;
 };
 
 export default layout;

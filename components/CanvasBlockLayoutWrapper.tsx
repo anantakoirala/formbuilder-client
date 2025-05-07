@@ -30,12 +30,6 @@ const CanvasBlockLayoutWrapper = ({ blockLayout, activeBlock }: Props) => {
     },
   });
 
-  useEffect(() => {
-    console.log("Droppable isOver (top):", topCorner.isOver);
-    console.log("Droppable isOver (bottom):", bottomCorner.isOver);
-    console.log("active block:", activeBlock);
-  }, [topCorner.isOver, bottomCorner.isOver, activeBlock]);
-
   return (
     <div className="relative mb-1">
       <div className="absolute top-0 w-full h-auto" ref={topCorner.setNodeRef}>

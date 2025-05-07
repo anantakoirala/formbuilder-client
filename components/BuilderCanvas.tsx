@@ -16,6 +16,7 @@ import { generateUniqueId } from "@/lib/generateUniqueId";
 import {
   insertBlockInSpecificPosition,
   insertNewBlockAccordingToChildPosition,
+  removeSelectedBlockLayoutId,
   repositionChildBlock,
   setBlocks,
   setRepositionBlockLayout,
@@ -190,28 +191,9 @@ const BuilderCanvas = (props: Props) => {
     },
   });
 
-  const repositionBlockLayout = (
-    activeId: string,
-    overId: string,
-    position: "above" | "below"
-  ) => {
-    // Find the indices of active and over blocks
-    const activeIndex = blockLayouts.findIndex(
-      (layout) => layout.id === activeId
-    );
-    const overIndex = blockLayouts.findIndex((layout) => layout.id === overId);
-
-    if (activeIndex === -1 || overIndex === -1) {
-      return;
-    }
-
-    // Remove the activeBlock from its current position
-    const updatedBlocks = [...blockLayouts];
-    const [movedBlock] = updatedBlocks.splice(activeIndex, 1);
-    const insertIndex = position === "above" ? overIndex : overIndex + 1;
-
-    updatedBlocks.splice(insertIndex, 0, movedBlock);
-    console.log("updatedBlocks", updatedBlocks);
+  const removeSelectedBlockId = async () => {
+    console.log("hello");
+    dispatch(removeSelectedBlockLayoutId(null));
   };
 
   // const insertBlockLayoutAtIndex = (
@@ -229,7 +211,14 @@ const BuilderCanvas = (props: Props) => {
   // };
 
   return (
-    <div className="relative w-full h-[calc(100vh-65px)] px-5 md:px-0 pt-4 pb-[120px] overflow-auto transition-all duration-300">
+    <div
+      className="relative w-full h-[calc(100vh-65px)] px-5 md:px-0 pt-4 pb-[120px] overflow-auto transition-all duration-300"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          removeSelectedBlockId();
+        }
+      }}
+    >
       <div className="w-full h-full max-w-[650px] mx-auto ">
         {/* Dropable canvas */}
         <div

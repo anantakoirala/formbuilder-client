@@ -21,7 +21,7 @@ const PreviewDialog = (props: Props) => {
   return (
     <>
       <Dialog>
-        <DialogTrigger>
+        <DialogTrigger asChild>
           <Button
             size={"sm"}
             variant={"outline"}
